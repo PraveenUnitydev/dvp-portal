@@ -1,0 +1,20 @@
+{
+  "name": "dvp-portal-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mahindra VR Lab DVP Portal - API server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node scripts/seed.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.4",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.0",
+    "mongoose": "^8.24.4"
+  }
+}
