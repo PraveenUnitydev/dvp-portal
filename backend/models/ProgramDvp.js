@@ -1,16 +1,18 @@
 const mongoose = require("mongoose");
 
-// Which catalog DVPs apply to which program, plus that program's own
-// progress on each one. A DVP with no row here for a program is simply
-// not part of that program and is never shown for it.
+// One row per (program, catalog DVP) that an admin has ever switched on.
+// `applicable: false` hides the DVP for that program without deleting it,
+// so its status, colour and remarks come back if it's switched on again.
 const programDvpSchema = new mongoose.Schema({
   program:         { type: mongoose.Schema.Types.ObjectId, ref: "Program", required: true },
   dvp:             { type: mongoose.Schema.Types.ObjectId, ref: "Dvp", required: true },
+  applicable:      { type: Boolean, default: true },
   responsibility:  { type: String, trim: true, default: "" },
   completedStatus: { type: String, enum: ["Done", "Not done"], default: "Not done" },
-  result:          { type: String, enum: ["Green", "Red", "Pending"], default: "Pending" },
+  color:           { type: String, enum: ["Red", "Blue", "Green", null], default: null },
   reason:          { type: String, trim: true, default: "" },
-  remarks:         { type: String, default: "" },
+  remarks:         { type: String, default: "", maxlength: 2000 },
+  updatedBy:       { type: String, default: "" },
 }, { timestamps: true });
 
 programDvpSchema.index({ program: 1, dvp: 1 }, { unique: true });

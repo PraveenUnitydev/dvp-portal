@@ -5,6 +5,11 @@ const mongoose = require("mongoose");
 const rateLimit = require("express-rate-limit");
 
 const PORT = Number(process.env.PORT) || 7100;
+// Fail fast rather than run with a missing or guessable signing key (VRSP lesson)
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error("JWT_SECRET is missing or shorter than 32 characters. Set it in backend/.env.");
+  process.exit(1);
+}
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/dvpPortal";
 
 const app = express();
@@ -24,13 +29,16 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "1mb" }));
+app.use("/api", (req, res, next) => { res.set("Cache-Control", "no-store"); next(); });
 app.use("/api", rateLimit({ windowMs: 15 * 60 * 1000, limit: 500, standardHeaders: true, legacyHeaders: false }));
 
 app.get("/api/health", (req, res) => res.json({
   status: "ok",
   database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
 }));
+app.use("/api/auth", require("./routes/auth"));
 app.use("/api/programs", require("./routes/programs"));
+app.use("/api/admin", require("./routes/admin"));
 app.use("/api", (req, res) => res.status(404).json({ message: "Not found." }));
 
 // DVP reference images (from the master sheet). Names change whenever the
