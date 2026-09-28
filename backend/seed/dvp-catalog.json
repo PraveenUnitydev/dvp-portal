@@ -20,7 +20,11 @@
    "acceptanceCriteria": "1.Pedal Spacing for utmost occupant comfort",
    "procedure": "1.The spacing between adjacent pedals shall be optimized to provide comfortable and natural foot placement for driver populations ranging from 5'00\" to 6'03\". \n2.Sufficient clearance shall be maintained to enable smooth and accurate pedal transition without foot interference or accidental operation of adjacent pedals. \n3.The pedal layout shall accommodate a wide range of footwear sizes and support comfortable driving during both short and extended vehicle usage.",
    "procedureAvailable": true,
-   "vrCapability": "Partial"
+   "vrCapability": "Partial",
+   "referenceImages": [
+    "UDVP-101-01-1.webp",
+    "UDVP-101-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-101-02",
@@ -38,7 +42,10 @@
    "acceptanceCriteria": "1.Should be accessible without any hindrance from Center Console & surrounding items.",
    "procedure": "1.The driver manikin (5th percentile female to 95th percentile male) shall be able to place and operate the foot on the pedal without contact or restriction from the center console, tunnel, lower IP, trim panels, or adjacent controls.\n\n2.Ensure minimum distance between C pedal  lateral to console wall distance.(refer image)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-101-02-1.webp"
+   ]
   },
   {
    "code": "UDVP-102-01",
@@ -56,7 +63,11 @@
    "acceptanceCriteria": "1.Steering Wheel Tilt / Telescopic Lever should be reachable for all populations ranging from 5’00” to 6’03” in buckled condition without stretch from their respective seating positions.",
    "procedure": "1.The Steering Wheel Tilt/Telescopic Lever shall be reachable and operable by all intended users, ranging from a 5th percentile female (approximately 5'0\") to a 95th percentile male (approximately 6'3\"), while in a seat-belted condition and seated in their respective driving positions, without requiring excessive stretching, forward lean, or posture deviation.\n\n2.For accessibilty the design requirements should met required clearances.(Refer Image)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-102-01-1.webp",
+    "UDVP-102-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-102-02",
@@ -74,7 +85,10 @@
    "acceptanceCriteria": "1.Rim Cross Section\t  Rim cross section should be within the requirement for comfortable grasping\n2.3-9 O'clock Position Profile  Top side - Rim to switch joinery should be smooth and under flushed to avoid palm pinching /Bottom side - Rim to hub joinery should be curvy for adequate grasping\n3.Thumb & Palm Grasping Profile    Rim to switch joinery should have circular relief and smooth profile for thumb insertion and palm grasping\n4.Palm swell Profile\t  Rim should have a swell for adequate palm grasping at 10 and 2 o’clock position \n5.Other Spoke Joineries\t  Spoke joinery with rim should have adequate clearance to avoid finger entrapment",
    "procedure": "1.Rim Cross Section: The steering wheel rim cross-section shall comply with ergonomic requirements to ensure a comfortable and secure grip during vehicle operation.\n\n2.3 and 9 O'Clock Grip Position Profile:\n\nUpper Side: The transition between the rim and switch housing shall be smooth and flush or slightly under-flush to prevent palm pinching and discomfort during use.\nLower Side: The transition between the rim and hub/spoke shall feature a smooth, contoured profile to facilitate a comfortable and natural hand grip.\n\n3.Thumb and Palm Grasping Profile: The interface between the rim and switch housing shall incorporate adequate circular relief and smooth surface transitions to support comfortable thumb placement and palm grasping.\n\n4.Palm Swell Profile: The steering wheel rim shall incorporate palm swells at the 10 and 2 o'clock positions to enhance grip comfort, control, and hand support.\n\n5.Spoke-to-Rim Joineries: All spoke-to-rim transitions shall provide sufficient clearance and smooth geometry to prevent finger entrapment and ensure comfortable hand movement around the steering wheel.",
    "procedureAvailable": true,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": [
+    "UDVP-102-02-1.webp"
+   ]
   },
   {
    "code": "VDVP-102-03",
@@ -92,7 +106,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-102-04",
@@ -110,7 +125,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-102-05",
@@ -128,7 +144,11 @@
    "acceptanceCriteria": "1.ACCESSSIBILTY - Steering Wheel Switches should be within the reach zone target for comfortable usage\n2.BUTTON SIZE & SPACING -Steering Wheel Switch buttons should meet the button size and spacing requirement",
    "procedure": "1.Accessibility:\n Steering Wheel Switches shall be positioned within the comfortable reach envelope of the driver, enabling easy access and operation without hand overextension, grip repositioning, or loss of steering control during normal driving.\n\n2.Button Size and Spacing:\n Steering Wheel Switch buttons shall comply with established button size and spacing requirements to ensure accurate identification and operation, while minimizing the risk of accidental activation and supporting comfortable use across the intended user population.\n\nFor accessibilty the design requirements should met required clearances.(Refer Image)\nClarification required on Toggle switch requirements",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-102-05-1.webp",
+    "UDVP-102-05-2.webp"
+   ]
   },
   {
    "code": "VDVP-102-06",
@@ -146,7 +166,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "VDVP-102-07",
@@ -164,7 +185,10 @@
    "acceptanceCriteria": "1.Should be visible all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in driving condition.\n2.Text and Symbol in combi switch should be legible from respective users seating condition",
    "procedure": "1.The combi switch, including all text, symbols, and markings, shall be clearly visible and easily readable for driver populations ranging from 5'00\" to 6'03\" from their normal driving position. \n\n2.Visibility and legibility shall be maintained without obstruction from the steering wheel or surrounding components, ensuring quick recognition and operation with minimal driver distraction.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-102-07-1.webp"
+   ]
   },
   {
    "code": "UDVP-102-08",
@@ -182,7 +206,13 @@
    "acceptanceCriteria": "1.Should be within reach target.\n2.Should be accessible without any hindrance from surrounding components.",
    "procedure": "1.The combi switch shall be positioned within the comfortable reach zone of all target driver populations and should be easily accessible during driving.\n\n2. Operation of the switch shall not be hindered by the steering wheel, steering column, instrument panel, or any surrounding components. Drivers should be able to locate and operate the switch without excessive hand stretch, wrist deviation, or posture adjustment, ensuring safe and convenient use while maintaining control of the vehicle.\n\nNote :Design requirements parameters metioned to be better than benchmarks",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-102-08-1.webp",
+    "UDVP-102-08-2.webp",
+    "UDVP-102-08-3.webp",
+    "UDVP-102-08-4.webp"
+   ]
   },
   {
    "code": "UDVP-102-09",
@@ -200,7 +230,10 @@
    "acceptanceCriteria": "1.Start-Stop Switch/ Ignition Key should be reachable for all populations ranging\nfrom 5’00” to 6’03” in buckled condition without stretch from\ntheir respective seating positions.\n\n2.Should be accessible without any hindrance from surrounding parts  \n\n3.Push Round Button A - Min 13mm Max 25mm",
    "procedure": "1.The Start-Stop Switch / Ignition Key shall be reachable and operable for driver populations ranging from 5'00\" to 6'03\" while seated in their preferred buckled driving posture. The control shall be accessible without interference from surrounding vehicle components and shall enable comfortable operation without excessive hand stretch, wrist deviation, or body movement. \n\n2.For accessibility , user needs to have miniumm 60mm clearance from key center axis without any hindrance.(Refer image )\n\n3.Where a push-type round button is provided, the button diameter shall be between 13 mm and 25 mm to support ease of use and ergonomic compliance.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-102-09-1.webp"
+   ]
   },
   {
    "code": "VDVP-103-01",
@@ -218,7 +251,11 @@
    "acceptanceCriteria": "1.All the dials, tell-tales & graphics should be visible with steering at nominal position, for all populations ranging from 5’00” to 6’03”positioned at their respective nominal seating location .",
    "procedure": "1.All dials, tell-tales, gauges, and graphical displays shall be fully visible and legible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions with the steering wheel set to its nominal position. \n\n2.Critical information shall not be obstructed by the steering wheel, steering column, or instrument panel components, ensuring quick and effortless information recognition during driving.\n\nRefer image to understand dials , tell tales and graphics",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-103-01-1.webp",
+    "VDVP-103-01-2.webp"
+   ]
   },
   {
    "code": "VDVP-103-02",
@@ -236,7 +273,11 @@
    "acceptanceCriteria": "1.All the dials, tell-tales, graphics, Text & Symbols should be legible\n\n2.To achieve the legibility requirements of the all-target population, the character height should be at least 4.6mm for primary critical characters, 3.7mm for Secondary Critical Characters and 2.8mm for secondary non-critical characters.",
    "procedure": "1.All dials, tell-tales, graphics, text, and symbols shall be clearly visible and legible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal driving positions. \n\n2.Information shall be recognizable at a glance under both day and night driving conditions without excessive visual effort. To achieve the required legibility for the target population, the minimum character height shall be:\n\nPrimary Critical Characters: ≥ 4.6 mm\nSecondary Critical Characters: ≥ 3.7 mm\nSecondary Non-Critical Characters: ≥ 2.8 mm\n\nRefer image attached to understand primary and secondary critical characters.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-103-02-1.webp",
+    "VDVP-103-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-103-03",
@@ -254,7 +295,11 @@
    "acceptanceCriteria": "1.Infotainment screen Active Area should be reachable for all populations ranging from 5’00” to 6’03” in buckled condition without stretch from their respective seating positions.\n\n2.There should not be any obstruction while accessing the infotainment",
    "procedure": "1.The infotainment screen active area shall be reachable and operable for driver populations ranging from 5'00\" to 6'03\" in a buckled driving condition from their respective seating positions. All touch interaction zones shall be accessible without requiring excessive stretch, forward lean, or posture adjustment. \n\n2.Access to the infotainment screen shall not be obstructed by the steering wheel, gear selector, center console, instrument panel, or any adjacent components. The design shall support comfortable, intuitive, and distraction-free operation during vehicle use.\n\nRefer image attached to understand all controls placed in reachable zone.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-103-03-1.webp",
+    "UDVP-103-03-2.webp"
+   ]
   },
   {
    "code": "VDVP-103-04",
@@ -272,7 +317,12 @@
    "acceptanceCriteria": "1.All the Texts, tell-tales & graphics should be visible with steering at nominal position, for all populations ranging from 5’00” to 6’03”positioned at their respective nominal seating location.",
    "procedure": "1.All texts, tell-tales, graphics, symbols, and display information on the infotainment screen shall be clearly visible and legible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions. \n\n2.Visibility shall be maintained with the steering wheel in its nominal position, and no critical information shall be obstructed by the steering wheel, driver's hands, instrument panel, or surrounding components. \n\n3.The displayed information shall support quick recognition and comfortable viewing with minimal visual effort, contributing to reduced driver distraction and improved usability.\n\nRefer image attached to understand the obscured area.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-103-04-1.webp",
+    "VDVP-103-04-2.webp",
+    "VDVP-103-04-3.webp"
+   ]
   },
   {
    "code": "VDVP-103-05",
@@ -290,7 +340,10 @@
    "acceptanceCriteria": "1.Blind Spot between A pillar bottom and ORVM should be minimal(V GAP)",
    "procedure": "1.The blind spot (V-gap) created between the A-pillar and ORVM shall be minimized for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions. \n2.The relative positioning of the A-pillar and ORVM shall be optimized to maximize the forward and side field of view while minimizing visual obstruction. \n3.Critical road users, traffic signs, and surrounding vehicles shall remain visible during normal driving and maneuvering conditions, thereby enhancing driver awareness and safety.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-103-05-1.webp"
+   ]
   },
   {
    "code": "VDVP-103-06",
@@ -308,7 +361,10 @@
    "acceptanceCriteria": "1.Higher windshield area should be visible in driving condition for all populations ranging from 5’00” to 6’03”positioned at their respective.nominal seating location in buckled posture.",
    "procedure": "1.The upper windshield area shall be visible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions in a buckled driving posture. The driver's upward field of view shall not be significantly obstructed by the windshield header, roof structure, sun visors, rear-view mirror, or adjacent components. Adequate visibility shall be provided to enable clear viewing of overhead traffic signals, road signs, and elevated roadway features without requiring excessive head tilt, neck extension, or posture adjustment, thereby ensuring safe and comfortable driving",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-103-06-1.webp"
+   ]
   },
   {
    "code": "VDVP-103-07",
@@ -326,7 +382,12 @@
    "acceptanceCriteria": "1.Legibility  All the tell-tales, graphics, Text & Symbols should be legible\n\n2.Touch Control Size  Touch (Tab / Icon) to meet the required size.",
    "procedure": "1.All tell-tales, graphics, text, symbols, icons, and display information presented on the infotainment screen shall be clearly visible and legible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions.Information shall be easily recognizable at a glance, minimizing visual effort and driver distraction.\n\n2..Touch-sensitive controls, including tabs, icons, buttons, and interactive screen elements, shall meet the specified touch target size requirements to ensure accurate selection, ease of operation, and reduced input errors.The design shall support comfortable use across the target population while maintaining safe interaction during vehicle operation.\n\nFor accessibilty the design requirements should met required clearances.(Refer Image)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-103-07-1.webp",
+    "VDVP-103-07-2.webp",
+    "VDVP-103-07-3.webp"
+   ]
   },
   {
    "code": "VDVP-104-01",
@@ -344,7 +405,13 @@
    "acceptanceCriteria": "1.All the switches in the Audio Control & HVAC switches should be visible with steering at nominal position, for all populations ranging from 5’00” to 6’03”positioned at their respective nominal seating location in buckled posture.",
    "procedure": "1.All Audio Control and HVAC switches, including their associated text, symbols, graphics, and status indicators, shall be clearly visible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions in a buckled driving posture. \nVisibility shall be maintained with the steering wheel in its nominal position, and no critical controls or information shall be obstructed by the steering wheel, instrument panel, center console, or adjacent components. The design shall support quick identification and intuitive operation with minimal visual effort and driver distraction.\n\nFor accessibilty the design requirements should met required clearances.(Refer Image)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-104-01-1.webp",
+    "VDVP-104-01-2.webp",
+    "VDVP-104-01-3.webp",
+    "VDVP-104-01-4.webp"
+   ]
   },
   {
    "code": "UDVP-104-02",
@@ -362,7 +429,15 @@
    "acceptanceCriteria": "1.HVAC Control should be reachable for all populations ranging from 5’00” to 6’03” in buckled condition without stretch from their respective seating positions. \n\n2.Should be accessible without any hindrance with surrounding items.",
    "procedure": "1.The HVAC controls shall be reachable and operable for driver populations ranging from 5'00\" to 6'03\" in a buckled driving condition from their respective seating positions. The controls shall be accessible without requiring excessive hand reach, forward lean, or body movement. \n2.Access to all HVAC functions shall be free from obstruction by surrounding components, ensuring comfortable, intuitive, and efficient operation while maintaining the driver's normal driving posture and vehicle control.\n\nFor accessibilty the design requirements should met required clearances.(Refer Image)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-104-02-1.webp",
+    "UDVP-104-02-2.webp",
+    "UDVP-104-02-3.webp",
+    "UDVP-104-02-4.webp",
+    "UDVP-104-02-5.webp",
+    "UDVP-104-02-6.webp"
+   ]
   },
   {
    "code": "VDVP-104-03",
@@ -380,7 +455,13 @@
    "acceptanceCriteria": "1.All the switches in the Audio Control & HVAC switches should be visible with steering at nominal position, for all populations ranging from 5’00” to 6’03”positioned at their respective nominal seating location in buckled posture.",
    "procedure": "1.All Audio Control and HVAC switches, including their associated text, symbols, graphics, and status indicators, shall be clearly visible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions in a buckled driving posture. \n\n2.Visibility shall be maintained with the steering wheel in its nominal position, and no critical controls or information shall be obstructed by the steering wheel, instrument panel, center console, or adjacent components. The design shall support quick identification and intuitive operation with minimal visual effort and driver distraction.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-104-03-1.webp",
+    "VDVP-104-03-2.webp",
+    "VDVP-104-03-3.webp",
+    "VDVP-104-03-4.webp"
+   ]
   },
   {
    "code": "UDVP-104-04",
@@ -398,7 +479,8 @@
    "acceptanceCriteria": "1.HVAC Control should be reachable for all populations ranging from 5’00” to 6’03” in buckled condition without stretch from their respective seating positions. \n\n2.Should be accessible without any hindrance with surrounding items.",
    "procedure": "1.The HVAC controls shall be reachable and operable for driver populations ranging from 5'00\" to 6'03\" in a buckled driving condition from their respective seating positions. \nThe controls shall be accessible without requiring excessive hand reach, forward lean, or body movement. \n2.Access to all HVAC functions shall be free from obstruction by surrounding components, ensuring comfortable, intuitive, and efficient operation while maintaining the driver's normal driving posture and vehicle control.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-104-05",
@@ -416,7 +498,8 @@
    "acceptanceCriteria": "1.All the switches in the Audio Control switches should be visible with steering at nominal position, for all populations ranging from 5’00” to 6’03”positioned at their respective nominal seating location in buckled posture\n\n2.Text & Symbols should be legible.",
    "procedure": "1.All Audio Control switches, along with their associated text, symbols, graphics, and status indicators, shall be clearly visible and legible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions in a buckled driving posture.\n\n2. Visibility shall be assessed with the steering wheel in its nominal position, and no critical controls or information shall be obstructed by the steering wheel, instrument panel, center console, or adjacent components. Text and symbols shall be easily recognizable at a glance, enabling quick identification and operation with minimal visual effort and driver distraction.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "UDVP-104-06",
@@ -434,7 +517,12 @@
    "acceptanceCriteria": "1.Center Fascia Switches should be reachable for all populations ranging from 5’00” to 6’03” in buckled condition without stretch from their respective seating positions. \n\n2.Should be accessible without any hindrance from Center Console Controls & surrounding items",
    "procedure": "1.All Center Fascia switches shall be reachable and operable for driver populations ranging from 5'00\" to 6'03\" from their respective seating positions in a buckled driving condition. The switches shall be located within the recommended reach zone, allowing comfortable operation without excessive hand stretch, wrist deviation, or body movement. \n\n2.The switches shall be accessible without any hindrance from center console controls, gear selectors, storage areas, or surrounding components, ensuring intuitive, comfortable, and safe operation during vehicle use.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-104-06-1.webp",
+    "UDVP-104-06-2.webp",
+    "UDVP-104-06-3.webp"
+   ]
   },
   {
    "code": "VDVP-104-07",
@@ -452,7 +540,11 @@
    "acceptanceCriteria": "1.All the switches in the driver switch bank should be visible with steering at nominal position, for all populations ranging from 5’00” to 6’03”positioned at their respective nominal seating location. \n\n2.Dummy switches should be placed at the right side of the switch bank",
    "procedure": "1.All switches in the Driver Switch Bank shall be clearly visible for driver populations ranging from 5'00\" to 6'03\" from their respective nominal seating positions. Visibility shall be verified with the steering wheel in its nominal position, ensuring that no switches are obscured by the steering wheel, instrument panel, door trim, or adjacent components. The switch layout shall support quick identification and operation with minimal visual effort.\n\n2. Any dummy or non-functional switches shall be positioned on the right side of the driver switch bank to maintain a logical, consistent, and user-friendly switch arrangement.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-104-07-1.webp",
+    "VDVP-104-07-2.webp"
+   ]
   },
   {
    "code": "UDVP-104-08",
@@ -470,7 +562,11 @@
    "acceptanceCriteria": "1.Driver Switch Bank should be reachable for all populations ranging\nfrom 5’00” to 6’03” in buckled condition without stretch from\ntheir respective seating positions. \n\n2.Should be accessible without any hindrance from Center Console Controls & surrounding items.",
    "procedure": "1.The Driver Switch Bank shall be reachable and operable for driver populations ranging from 5'00\" to 6'03\" in a buckled driving condition from their respective seating positions. The switches shall be located within the recommended reach zone, allowing operation without excessive hand stretch, wrist deviation, shoulder movement, or body lean. \n\n2.Access to all switches shall be free from obstruction by the door trim, armrest, grab handle, door pull, window switch panel, door pocket, or adjacent components, ensuring comfortable, intuitive, and safe operation during vehicle use.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-104-08-1.webp",
+    "UDVP-104-08-2.webp"
+   ]
   },
   {
    "code": "UDVP-104-09",
@@ -488,7 +584,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-105-01",
@@ -506,7 +603,11 @@
    "acceptanceCriteria": "1.Can be accessed with slight stretched reach\n2.User should be able to hold and adjust the vent knob without any obstruction or slip.",
    "procedure": "1.The air vent control knob shall be reachable for driver populations ranging from 5'00\" to 6'03\" from their respective seating positions in a buckled driving posture. A slight stretched reach is acceptable for operation. \n\n2.Users shall be able to comfortably grasp, hold, and adjust the vent knob without obstruction from adjacent components or surrounding trim. The control shall provide sufficient grip, clearance, and tactile feedback to prevent finger slip and enable precise adjustment of airflow direction and vent opening.\n\nvent Knob should have met required dimension(refer image attached)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-105-01-1.webp",
+    "UDVP-105-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-106-01",
@@ -524,7 +625,13 @@
    "acceptanceCriteria": "1.Can be accessed with slight stretched reach\n2.User should be able to adjust lever without any obstruction",
    "procedure": "1.The IP Hood Lever shall be reachable for driver populations ranging from 5'00\" to 6'03\" from their respective seating positions, with a slight stretched reach considered acceptable. Users shall be able to comfortably grasp, hold, and operate the lever without excessive effort or posture adjustment. \n2.The lever shall be accessible without obstruction from surrounding components, ensuring smooth, intuitive, and reliable adjustment during vehicle operation.\n\nHood release lever should have met required dimension(refer image attached)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-106-01-1.webp",
+    "UDVP-106-01-2.webp",
+    "UDVP-106-01-3.webp",
+    "UDVP-106-01-4.webp"
+   ]
   },
   {
    "code": "UDVP-106-02",
@@ -542,7 +649,13 @@
    "acceptanceCriteria": "1.Glove box switch should be accessible for Driver with stretched reach\n\n2.Glove box should have sufficient amount of usable volume when compared with benchmark vehicles\n\n3.Open condition Entry hand access clearance\n\n4.Open condition Knee clearance",
    "procedure": "1.The glove box switch/latch shall be accessible to the driver from the normal seating position with a stretched reach considered acceptable.\n2.The glove box shall provide sufficient usable storage volume comparable to benchmark vehicles within the same segment.\n3.In the open condition, adequate hand access clearance shall be provided to allow comfortable insertion and retrieval of stored items.\nIn the open condition, the glove box lid and storage compartment shall maintain sufficient 4.knee clearance, ensuring that it does not interfere with the driver's or passenger's knees and leg space.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-106-02-1.webp",
+    "UDVP-106-02-2.webp",
+    "UDVP-106-02-3.webp",
+    "UDVP-106-02-4.webp"
+   ]
   },
   {
    "code": "VDVP-107-01",
@@ -560,7 +673,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "VDVP-107-02",
@@ -578,7 +692,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-201-01",
@@ -596,7 +711,10 @@
    "acceptanceCriteria": "1. AT Gear shifter lever should be within reach zone to all population (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in buckled condition.\n2. AT Gear shifter lever should be accessible without any hindrance from Center Console Controls & surrounding items.",
    "procedure": "1. Position representative users (5'00\", 5'06\", 5'11\" & 6'03\") in the buckled driving posture and evaluate AT gear shifter reachability within the comfortable reach zone.\n\n2. Verify that the AT gear shifter can be operated without interference from center console controls or surrounding components.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-201-01-1.webp"
+   ]
   },
   {
    "code": "VDVP-201-02",
@@ -614,7 +732,10 @@
    "acceptanceCriteria": "1..AT Gear Shifter knob label zone is should be visible for all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in buckled condition..\n2 .AT gear shifter knob label visibility is should be more clarity to meeting legibility requirement.",
    "procedure": "1.Evaluate whether the AT gear shift knob label zone is clearly visible to all manikins from the driver's seating position.\n\n2.Evaluate whether the label letters are clearly noticeable to all manikins from the driver's seating position",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-201-02-1.webp"
+   ]
   },
   {
    "code": "UDVP-201-03",
@@ -632,7 +753,10 @@
    "acceptanceCriteria": "1. MT Gear shifter lever should be within reach zone of all population in buckled condition.\n2. MT Gear shifter lever should be accessible without any hindrance from Center Console Controls & surrounding items.",
    "procedure": "1. Evaluate whether the MT gear shifter lever is within the reach zone of all population in the buckled driving condition.\n\n2. Evaluate whether the MT gear shifter lever is accessible without any hindrance from the center console controls and surrounding items.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-201-03-1.webp"
+   ]
   },
   {
    "code": "VDVP-201-04",
@@ -650,7 +774,10 @@
    "acceptanceCriteria": "1..MT Gear Shifter knob label zone is should be visible for all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in buckled condition..\n2 .MT gear shifter knob label visibility is should be more clarity without any hindrance from Centre Console Controls & surrounding itemsto meeting legibility requirement.",
    "procedure": "1.Evaluate whether the MT gear shift knob label zone is clearly visible to all manikins from the driver's seating position.\n\n2.Evaluate whether the label letters are clearly noticeable to all manikins from the driver's seating position",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-201-04-1.webp"
+   ]
   },
   {
    "code": "UDVP-202-01",
@@ -668,7 +795,10 @@
    "acceptanceCriteria": "1.Hand brake lever Should be within reach zone of all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in buckled condition\n2. Hand brake lever Should be accessible without any hindrance from Centre Console Controls & surrounding items.",
    "procedure": "1.Evaluate whether the parking brake lever is easily accessible to all manikins from the driver's seating position.\n\n2.Evaluate whether the parking brake lever is easily accessible to all manikins from the driver's seating position without any interference from the center console controls or surrounding components.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-202-01-1.webp"
+   ]
   },
   {
    "code": "VDVP-202-02",
@@ -686,7 +816,10 @@
    "acceptanceCriteria": "1. Electric Park Brake switch should be visible all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in driving condition.\n2. Electric Park Brake switch text and Symbol in EPB switch should be legible from respective users seating condition",
    "procedure": "1. Evaluate whether the Electric Park Brake (EPB) switch is visible to all users (5'00\", 5'06\", 5'11\" & 6'03\") in the driving condition.\n\n2. Evaluate whether the EPB switch text and symbol are clearly noticable for all users to meet the legible requirements..",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-202-02-1.webp"
+   ]
   },
   {
    "code": "UDVP-202-03",
@@ -704,7 +837,10 @@
    "acceptanceCriteria": "1. Electric parking brake swith Should be within touch reach zone of all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in buckled condition\n2.Electric parking brake switch Should have adequate scoop for Index finger operation\n3.Electric parking brake swittch Should be accessible without any hindrance from Center Console Controls & surrounding items",
    "procedure": "1.Evaluate whether the electric parking brake switch zone is easily reachable of all users (5'00\", 5'06\", 5'11\", and 6'03\") in the buckled seating condition.\n\n2.Evaluate whether the electric parking brake switch provides adequate scoop clearance for comfortable index finger operation.\n\n3.Evaluate whether the electric parking brake switch is accessible to all users without any interference from the center console controls or surrounding components.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-202-03-1.webp"
+   ]
   },
   {
    "code": "VDVP-203-01",
@@ -722,7 +858,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-203-02",
@@ -740,7 +877,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-203-03",
@@ -758,7 +896,11 @@
    "acceptanceCriteria": "1.Can be accessed with slight stretched reach\n2. User should be able to hold and adjust the vent knob without any obstruction or slip.",
    "procedure": "1. Evaluvate all the users can able to reach the 2nd Row HVAC Vents zone with slight stretched position.\n2. Assess whether the Users should be able to hold and adjust the vent knob without any obstruction or slip.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-203-03-1.webp",
+    "UDVP-203-03-2.webp"
+   ]
   },
   {
    "code": "UDVP-204-01",
@@ -776,7 +918,10 @@
    "acceptanceCriteria": "1. Center Console  Armrest usability should have sufficient hand support to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’)  without any obstruction.",
    "procedure": "1. Evaluate whether the center console armrest provides sufficient hand support to all users (5'00\", 5'06\", 5'11\" & 6'03\") without any obstruction.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-204-01-1.webp"
+   ]
   },
   {
    "code": "UDVP-204-02",
@@ -794,7 +939,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-204-03",
@@ -812,7 +958,10 @@
    "acceptanceCriteria": "1. Cup Holder Zone Should be within grasp reach zone of all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in buckled condition\n2.Cup Holder Zone Should be accessible without any hindrance from Center Console Controls & surrounding items.",
    "procedure": "1.Evaluate whether the cup holder zone is easily reachable  to all the users (5'00\", 5'06\", 5'11\", and 6'03\") in the buckled seating condition.\n\n2.Evaluate whether the cup holder zone is accessible to all users without any Hindrance from the center console controls or surrounding components.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-204-03-1.webp"
+   ]
   },
   {
    "code": "UDVP-204-04",
@@ -830,7 +979,10 @@
    "acceptanceCriteria": "1. Console Armrest to console controls Accessibility should be accessible without any hindrance with surrounding items.\n2. Console Armrest to console controls Accessibility should have competitive storage volume & Usability of standard objects within storage.",
    "procedure": "1. Evaluate whether the console armrest provides easily accessible reach to the console controls without any hindrance from surrounding items.\n\n2. Evaluate whether the console armrest storage offers competitive storage volume and supports the usability of standard objects within the storage compartment.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-204-04-1.webp"
+   ]
   },
   {
    "code": "VDVP-205-01",
@@ -848,7 +1000,10 @@
    "acceptanceCriteria": "1.12V/USB/AUX Port Should be visible to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) from first row seating position,\n2.Text and Symbol in the charging port should be legible from respective users from first row seating position.",
    "procedure": "1.Evaluvate whether 12V/USB/AUX Port is easily visible to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) from first row seating position\n2.Check whether the letters & symbols clearly readable to all the users to meet legability requirement from first row seating position.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-205-01-1.webp"
+   ]
   },
   {
    "code": "VDVP-205-02",
@@ -866,7 +1021,10 @@
    "acceptanceCriteria": "1.12V/USB/AUX Port Should be visible to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) from second row seating Position.\n2.Text and Symbol in the charging port should be legible from respective users from second row seating Position.",
    "procedure": "1.Evaluvate whether 12V/USB/AUX Port is easily visible to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) from second row seating Position.\n2.Check whether the letters & symbols clearly readable to all the users to meet legability requirement from second row seating Position.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-205-02-1.webp"
+   ]
   },
   {
    "code": "UDVP-205-03",
@@ -884,7 +1042,10 @@
    "acceptanceCriteria": "1.Good to have within reach for all user. Can be accessed with slight stretched reach\n2.Should be accessible without any hindrance from surrounding components",
    "procedure": "1.Evaluvate whether all the users, can be able to  reach the 12V/USB/AUX Port Zone slightly stretched Position\n2.Check all the users without any hindrance from surrounding components to access the 12V/USB/AUX Port Zone",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-205-03-1.webp"
+   ]
   },
   {
    "code": "UDVP-205-04",
@@ -902,7 +1063,10 @@
    "acceptanceCriteria": "1.Good to have within reach for all user. Can be accessed with slight stretched reach\n2.Should be accessible without any hindrance from surrounding components",
    "procedure": "1.Evaluvate whether all the users, can be able to  reach the 12V/USB/AUX Port Zone slightly stretched Position\n2.Check all the users without any hindrance from surrounding components to access the 12V/USB/AUX Port Zone",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-205-04-1.webp"
+   ]
   },
   {
    "code": "VDVP-206-01",
@@ -920,7 +1084,10 @@
    "acceptanceCriteria": "1.Mobile Holder Should be visible to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in driving condition",
    "procedure": "1.Check the mobile Holder is visible or not from driver seating position",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-206-01-1.webp"
+   ]
   },
   {
    "code": "VDVP-206-02",
@@ -938,7 +1105,10 @@
    "acceptanceCriteria": "1.Mobile Holder Should be visible to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) second row occupants",
    "procedure": "1.Check the mobile Holder is visible or not from second row occupant seating position",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-206-02-1.webp"
+   ]
   },
   {
    "code": "UDVP-206-03",
@@ -956,7 +1126,10 @@
    "acceptanceCriteria": "1.Good to have within reach for all user. Can be accessed with slight stretched reach\n2.Should be accessible without any hindrance from surrounding components\n3.Mobile holder size should be better than competitor or should meet PRF requirement",
    "procedure": "1.Evaluvate whether the all kind of manikinis are able to reach the mobile Holder Zone \n2.Check with out any surrounding Hindrance access the  mobile Holder Zone \n3.Check Minimum to Maximum size mobiles whether we can able to accommodate or not.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-206-03-1.webp"
+   ]
   },
   {
    "code": "UDVP-206-04",
@@ -974,7 +1147,10 @@
    "acceptanceCriteria": "1.Good to have within reach for all user. Can be accessed with slight stretched reach\n2.Should be accessible without any hindrance from surrounding components\n3.Mobile holder size should be better than competitor or should meet PRF requirement",
    "procedure": "1.Evaluvate whether the all kind of manikinis are able to reach the mobile Holder Zone \n2.Check with out any surrounding Hindrance access the  mobile Holder Zone \n3.Check Minimum to Maximum size mobiles whether we can able to accommodate or not.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-206-04-1.webp"
+   ]
   },
   {
    "code": "UDVP-207-01",
@@ -992,7 +1168,10 @@
    "acceptanceCriteria": "1.There should be enough space to control the button & should not be any unintended actuation of buttons\n2. All buttons should be on Same side",
    "procedure": "1.Evaluvate the space between the button & Button placement side\n2.Button should meet physical contact area requirement (13mm diameter)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-207-01-1.webp"
+   ]
   },
   {
    "code": "VDVP-301-01",
@@ -1010,7 +1189,11 @@
    "acceptanceCriteria": "1.Should be visible to all users (5'0\", 5'6\", 5'11\", and 6'03\") in driving condition.",
    "procedure": "1.The occupant population (5'0\", 5'6\", 5'11\", and 6'03\") shall be able to visually identify the control/switch from the normal driving posture without obstruction from the steering wheel, door trim, or other surrounding components. Verify visibility for all specified user statures.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-301-01-1.webp",
+    "VDVP-301-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-301-02",
@@ -1028,7 +1211,11 @@
    "acceptanceCriteria": "1. ORVM Control should be reachable for all populations ranging from 5'00\" to 6'03\" in buckled condition without stretch from their respective seating positions\n2. Should be accessible without any hindrance from IP controls and surrounding items\n3. Button size and spacing should be adequate for easy identification and operation.",
    "procedure": "1. The occupant population (5'0\", 5'6\", 5'11\", and 6'03\") shall be able to reach and operate the ORVM control from the normal driving posture while buckled, without excessive stretching or posture deviation.\n2. The occupant population (5'0\", 5'6\", 5'11\", and 6'03\") shall be able to identify, access, and operate the ORVM control without interference from adjacent controls, steering wheel, instrument panel, or surrounding components\n3. The occupant population (5'0\", 5'6\", 5'11\", and 6'03\") shall be able to easily locate and operate the ORVM buttons individually without accidental activation of adjacent buttons. Ensure adequate button dimensions and spacing for comfortable finger operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-301-02-1.webp",
+    "UDVP-301-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-301-03",
@@ -1046,7 +1233,11 @@
    "acceptanceCriteria": "1.Button dimensions (Button Dia, Button Spacing, Toggle Height, and Toggle Width) should meet target requirements for easy identification and operation.\n2.Sufficient finger and access clearance shall be provided around the switch controls.\n3.Adequate clearance should be available between the elbow and B-pillar trim while accessing the rearmost switch.",
    "procedure": "1.The occupant population (5'0\" to 6'03\") shall be able to easily identify and operate the buttons without visual distraction or accidental activation of adjacent buttons. Verify that button dimensions and spacing comply with the specified target values.\n2.The occupant population (5'0\" to 6'03\") shall be able to access and operate the switches without finger rubbing, knuckle contact, or interference from surrounding trim components. Verify that specified clearance requirements are maintained.\n3.The occupant population (5'0\" to 6'03\") shall be able to access the rearmost switch without elbow contact or discomfort due to the B-pillar trim. Verify sufficient elbow clearance during operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-301-03-1.webp",
+    "UDVP-301-03-2.webp"
+   ]
   },
   {
    "code": "VDVP-301-04",
@@ -1064,7 +1255,11 @@
    "acceptanceCriteria": "1.Should be visible to all users (5'00\", 5'06\", 5'11\" & 6'03\") in driving condition.",
    "procedure": "1.The occupant population (5'00\", 5'06\", 5'11\" & 6'03\") shall be able to visually identify the door switch/control from the normal driving posture without obstruction from the door trim, armrest or other surrounding components. Verify visibility for all specified user statures.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-301-04-1.webp",
+    "VDVP-301-04-2.webp"
+   ]
   },
   {
    "code": "UDVP-301-05",
@@ -1082,7 +1277,11 @@
    "acceptanceCriteria": "1.Button Dia (A), Button Spacing (B), Toggle Button Height (E), and Toggle Button Width (F) shall meet the specified target values for easy and accurate operation.\n2.Finger Clearance (C) and Finger Clearance (D) shall meet the specified target values. Adequate elbow clearance shall be available with the C-pillar trim while accessing the switch.",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to easily identify and operate the buttons/switches without accidental activation of adjacent controls. Verify that button dimensions and spacing meet the specified target requirements.\n2.The occupant population (5'00\" to 6'03\") shall be able to access and operate the switch without finger rubbing, knuckle contact, or interference from surrounding trim components. Verify sufficient finger, hand, and elbow clearance during switch operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-301-05-1.webp",
+    "UDVP-301-05-2.webp"
+   ]
   },
   {
    "code": "UDVP-301-06",
@@ -1100,7 +1299,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-301-07",
@@ -1118,7 +1318,10 @@
    "acceptanceCriteria": "1.Pull cup length (L) shall be greater than 100 mm\n2.Pull cup gap with trim (W) shall be greater than 30 mm\n3.Pull cup depth (D) shall be greater than 50 mm",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to comfortably grasp the pull cup along its length for door closing/opening. Verify that the pull cup length meets the specified target requirement.\n2.The occupant population (5'00\" to 6'03\") shall be able to insert fingers into the pull cup without rubbing or interference from adjacent trim surfaces. Verify that the required gap is maintained.\n3.The occupant population (5'00\" to 6'03\") shall be able to securely grip the pull cup during door operation. Verify that the pull cup depth provides adequate finger engagement and comfortable usage",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-301-07-1.webp"
+   ]
   },
   {
    "code": "UDVP-301-08",
@@ -1136,7 +1339,10 @@
    "acceptanceCriteria": "1.Pull cup length (L) shall be greater than 100 mm\n2.Pull cup gap with trim (W) shall be greater than 30 mm\n3.Pull cup depth (D) shall be greater than 50 mm",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to comfortably grasp the pull cup for door closing and opening. Verify that the pull cup length provides adequate hand support.\n2.The occupant population (5'00\" to 6'03\") shall be able to insert fingers into the pull cup without interference from surrounding trim. Verify adequate finger access clearance.\n3.The occupant population (5'00\" to 6'03\") shall be able to achieve a secure and comfortable grip within the pull cup during door operation. Verify adequate finger engagement depth.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-301-08-1.webp"
+   ]
   },
   {
    "code": "UDVP-302-01",
@@ -1154,7 +1360,11 @@
    "acceptanceCriteria": "1.IDH should be positioned within the reach zone. Driver: X > 450 / Z > 320. 2nd Row: X > 350 / Z > 320.\n2.Finger Clearance Vertical Lever (A) > 30 mm, Finger Clearance Lateral (B) > 30 mm, Finger Clearance Vertical Lock (C) > 20 mm, Finger Insertion Clearance (D) > 75 mm, Finger Insertion Depth (E) > 30 mm.",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to easily reach and operate the IDH from the intended seating position without excessive stretch or awkward posture. Verify that the IDH location falls within the specified reach envelope.\n2.The occupant population (5'00\" to 6'03\") shall be able to insert fingers, grasp, and operate the IDH comfortably without finger rubbing, knuckle contact, or interference from surrounding trim/components. Verify that all finger clearance requirements are met.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-302-01-1.webp",
+    "UDVP-302-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-302-03",
@@ -1172,7 +1382,11 @@
    "acceptanceCriteria": "1.IDH should be positioned within the reach zone.\n2.Driver: X > 450 / Z > 320\n2nd Row: X > 350 / Z > 320\nFinger Clearance Vertical Lever (A) > 30 mm\nFinger Clearance Lateral (B) > 30 mm\nFinger Clearance Vertical Lock (C) > 20 mm\nFinger Insertion Clearance (D) > 75 mm\nFinger Insertion Depth (E) > 30 mm",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to easily locate, reach, and operate the IDH from the intended seating position without excessive stretching or awkward posture.\n2.The occupant population (5'00\" to 6'03\") shall be able to insert fingers, grasp, and operate the IDH comfortably without finger rubbing, knuckle contact, or interference from surrounding components. Verify adequate finger access clearance during operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-302-03-1.webp",
+    "UDVP-302-03-2.webp"
+   ]
   },
   {
    "code": "UDVP-303-01",
@@ -1190,7 +1404,11 @@
    "acceptanceCriteria": "1. The given 1-liter bottle dimension shall be accommodable and accessible within the door trim map pocket.",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to easily place, access, grasp, and retrieve the 1-liter bottle from the door trim map pocket without interference from adjacent trim components or excessive reach. Verify secure bottle accommodation and convenient accessibility.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-303-01-1.webp",
+    "UDVP-303-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-303-02",
@@ -1208,7 +1426,11 @@
    "acceptanceCriteria": "1. The given 1-liter bottle dimension shall be accommodable and accessible within the door trim map pocket.",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to easily place, access, grasp, and retrieve the 1-liter bottle from the door trim map pocket without interference from adjacent trim components or excessive reach. Verify secure bottle accommodation and convenient accessibility.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-303-02-1.webp",
+    "UDVP-303-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-304-01",
@@ -1226,7 +1448,10 @@
    "acceptanceCriteria": "1.Door Armrest should be easily accessible and usable for all population range from 5'00\" to 6'03\". There should be enough armrest flat land usable area (60 mm) to meet VAL target envelope surface.\n2.Slope to be between 6° to 8°.",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to comfortably reach and rest the forearm on the armrest in the normal driving posture. Verify that the armrest provides adequate flat usable support area and is easily accessible for all users\n2.The occupant population (5'00\" to 6'03\") shall be able to comfortably rest the forearm on the armrest without slippage or discomfort. Verify that the armrest slope is maintained within the specified range.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-304-01-1.webp"
+   ]
   },
   {
    "code": "UDVP-304-02",
@@ -1244,7 +1469,10 @@
    "acceptanceCriteria": "1.Door Armrest should be easily accessible and usable for all population range from 5'00\" to 6'03\". There should be enough armrest flat land usable area (60 mm) to meet VAL target envelope surface.\n2.Slope to be between 6° to 8°.",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to easily reach and comfortably rest the forearm on the door armrest in the normal driving posture. Verify adequate flat support area and usability for all users.\n2.The occupant population (5'00\" to 6'03\") shall be able to comfortably rest the forearm on the armrest without discomfort or slipping. Verify that the armrest slope is within the specified range.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-304-02-1.webp"
+   ]
   },
   {
    "code": "UDVP-304-03",
@@ -1262,7 +1490,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-401-01",
@@ -1280,7 +1509,11 @@
    "acceptanceCriteria": "1.The occupant manikin (5th percentile female to 95th percentile male) shall be able to reach, grasp, latch, and unlatch the seat buckle without interference from surrounding components. \n2.Ensure adequate clearance is maintained around the buckle and verify that the buckle position allows comfortable access without excessive reach or awkward posture.",
    "procedure": "1.The occupant manikin (5th percentile female to 95th percentile male) shall be able to reach, grasp, latch, and unlatch the seat buckle without interference from surrounding components. \n2.Ensure adequate clearance is maintained around the buckle and verify that the buckle position allows comfortable access without excessive reach or awkward posture.",
    "procedureAvailable": true,
-   "vrCapability": "Partial"
+   "vrCapability": "Partial",
+   "referenceImages": [
+    "UDVP-401-01-1.webp",
+    "UDVP-401-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-401-02",
@@ -1298,7 +1531,11 @@
    "acceptanceCriteria": "1.Seat Buckle position to be optimal to avoid access obstruction with surrounding components and avoid stretched reach.\n2.Seat Buckle should have adequate clearance with surrounding components.",
    "procedure": "1.Occupant manikin (5th %ile female to 95th %ile male) shall be able to reach and operate the seat buckle comfortably without obstruction from surrounding components and without excessive reach.\n2.Occupant manikin (5th %ile female to 95th %ile male) shall be able to access, grasp, latch, and unlatch the seat buckle without interference from adjacent components. Ensure adequate hand clearance around the buckle.",
    "procedureAvailable": true,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": [
+    "UDVP-401-02-1.webp",
+    "UDVP-401-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-401-03",
@@ -1316,7 +1553,11 @@
    "acceptanceCriteria": "1.Seat Buckle position to be optimal to avoid access obstruction with surrounding components and avoid stretched reach.\n2.Seat Buckle should have adequate clearance with surrounding components.",
    "procedure": "1.The occupant manikin (5th percentile female to 95th percentile male) shall be able to comfortably reach and operate the seat buckle without obstruction from surrounding components. Verify that no excessive arm or torso stretch is required.\n2.The occupant manikin (5th percentile female to 95th percentile male) shall be able to grasp, latch, and unlatch the seat buckle without interference from adjacent components. Ensure sufficient hand clearance around the buckle.",
    "procedureAvailable": true,
-   "vrCapability": "Partial"
+   "vrCapability": "Partial",
+   "referenceImages": [
+    "UDVP-401-03-1.webp",
+    "UDVP-401-03-2.webp"
+   ]
   },
   {
    "code": "UDVP-401-04",
@@ -1334,7 +1575,11 @@
    "acceptanceCriteria": "1.Seat Buckle position to be optimal to avoid access obstruction with surrounding components and avoid stretched reach.\n2.Seat Buckle should have adequate clearance with surrounding components.",
    "procedure": "1.Occupant manikin (5th percentile female to 95th percentile male) shall be able to reach and operate the seat buckle comfortably without obstruction from surrounding components or excessive reach.\n2.Occupant manikin (5th percentile female to 95th percentile male) shall be able to grasp, latch, and unlatch the seat buckle without interference from adjacent components. Ensure adequate hand clearance around the buckle.",
    "procedureAvailable": true,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": [
+    "UDVP-401-04-1.webp",
+    "UDVP-401-04-2.webp"
+   ]
   },
   {
    "code": "UDVP-402-01",
@@ -1352,7 +1597,11 @@
    "acceptanceCriteria": "1.Seat control position to be optimal to avoid access obstruction with B-Pillar or Door Trim and avoid stretched reach\n2.Seat control lever and switch size should be adequate for ease of holding and operation.\n3.Seat control should have adequate clearance with surrounding components.\n4.Towel bar lever should be of adequate size for ease of holding and operation.",
    "procedure": "1.The occupant manikin (5th percentile female to 95th percentile male) shall be able to reach and operate the seat control comfortably without interference from the B-Pillar, Door Trim, or adjacent components and without excessive reach.\n2.The occupant manikin (5th percentile female to 95th percentile male) shall be able to easily identify, grasp, and operate the seat control lever/switch without difficulty. Ensure the actuator size supports comfortable hand interaction.\n3.The occupant manikin (5th percentile female to 95th percentile male) shall be able to access and operate the seat control without contact or restriction from surrounding components. Ensure adequate hand/finger clearance is available.\n4.The occupant manikin (5th percentile female to 95th percentile male) shall be able to comfortably grasp and operate the towel bar lever. Ensure sufficient clearance and lever dimensions for easy access and operation",
    "procedureAvailable": true,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": [
+    "UDVP-402-01-1.webp",
+    "UDVP-402-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-402-02",
@@ -1370,7 +1619,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-402-03",
@@ -1388,7 +1638,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-403-01",
@@ -1406,7 +1657,11 @@
    "acceptanceCriteria": "1.Armrest size, profile & position should be usable for the occupant.\n2.Cup Holder size, profile & position should be usable for the occupant.\n3.Mobile Holder size, profile & position should be usable for the occupant.",
    "procedure": "1.The occupant manikin (5th percentile female to 95th percentile male) shall be able to comfortably rest the arm on the armrest. Verify that the armrest size, profile, and position support a natural arm posture.\n2.The occupant manikin (5th percentile female to 95th percentile male) shall be able to easily reach, place, and retrieve a cup without excessive reach or interference. Verify that the cup holder size and position support comfortable use.\n3.The occupant manikin (5th percentile female to 95th percentile male) shall be able to easily reach, place, and retrieve a mobile device. Verify that the holder size, profile, and position provide convenient access and operation",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-403-01-1.webp",
+    "UDVP-403-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-403-02",
@@ -1424,7 +1679,11 @@
    "acceptanceCriteria": "Headrest size, profile, and adjustment range should provide adequate support for all population (5'0\", 5'6\", 5'11\", and 6'03\") in driving condition",
    "procedure": "1.The occupant manikin/population (5'0\", 5'6\", 5'11\", and 6'03\") shall be able to achieve adequate head and neck support with the headrest in its adjustment range during the driving posture. Verify that the headrest size, profile, and adjustability accommodate all specified users comfortably.",
    "procedureAvailable": true,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": [
+    "UDVP-403-02-1.webp",
+    "UDVP-403-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-404-03",
@@ -1442,7 +1701,11 @@
    "acceptanceCriteria": "1.Seat folding lever position to be within reachable zone.\n2.Should be within reach zone of all users (5'0\", 5'6\", 5'11\", and 6'03\") in stretched condition.",
    "procedure": "1.The occupant population (5'0\", 5'6\", 5'11\", and 6'03\") shall be able to easily locate, reach, and operate the seat folding lever without excessive stretching or awkward posture.\n2.The occupant population (5'0\", 5'6\", 5'11\", and 6'03\") shall be able to reach and operate the seat folding lever from the intended access location without interference from surrounding components. Ensure adequate hand access and reachability for all specified users",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-404-03-1.webp",
+    "UDVP-404-03-2.webp"
+   ]
   },
   {
    "code": "UDVP-501-01",
@@ -1460,7 +1723,11 @@
    "acceptanceCriteria": "1.Centre point of the grab handle should be within the defined comfort zone.\n2.Grab handle length A > 105 mm. Handle thickness C = 23-32 mm. Handle thickness D = 17-25 mm.\n3.Handle should be accessible without any hindrance from surrounding items and provide ease of access for all users. Grab access clearance > 45 mm.",
    "procedure": "1.Verify that the centre point of the grab handle lies within the predefined occupant comfort/reach zone for all intended users in the normal seating posture.\n2.Measure the effective grip length (A) and cross-sectional dimensions (C and D) of the grab handle. Verify that the grip length exceeds 105 mm and that the cross-sectional dimensions are within the specified ergonomic ranges to ensure comfortable grasping.\n3.Verify that the grab handle can be reached and grasped without interference from roof trim, pillars, headliner, sun visor, or other surrounding components. Measure the minimum hand access clearance and ensure it is greater than 45 mm to allow convenient hand insertion and operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-501-01-1.webp",
+    "UDVP-501-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-501-02",
@@ -1478,7 +1745,11 @@
    "acceptanceCriteria": "1.Centre point of the grab handle should be within the defined comfort zone.\n2.Grab handle length A > 105 mm. Handle thickness C = 23-32 mm. Handle thickness D = 17-25 mm.\n3.Handle should be accessible without any hindrance from surrounding items and provide ease of access for all users. Grab access clearance > 45 mm.",
    "procedure": "1.Verify that the centre point of the grab handle lies within the predefined occupant comfort/reach zone for all intended users in the normal seating posture.\n2.Measure the effective grip length (A) and cross-sectional dimensions (C and D) of the grab handle. Verify that the grip length exceeds 105 mm and that the cross-sectional dimensions are within the specified ergonomic ranges to ensure comfortable grasping.\n3.Verify that the grab handle can be reached and grasped without interference from roof trim, pillars, headliner, sun visor, or other surrounding components. Measure the minimum hand access clearance and ensure it is greater than 45 mm to allow convenient hand insertion and operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-501-02-1.webp",
+    "UDVP-501-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-501-03",
@@ -1496,7 +1767,11 @@
    "acceptanceCriteria": "1.Handle center point shall be within the target comfort zone with respect to Ground and SgRP.\n2.Handle length A > 105 mm. Handle thickness C = 20-30 mm. Handle thickness D = 30-35 mm.\n3.Handle shall be easy to reach without obstruction. Access clearance > 40 mm.",
    "procedure": "1.Check that the center point of the grab handle is within the comfortable reach area for users when measured from both the Ground reference and SgRP.\n2.Measure the handle grip length (A) and cross-section dimensions (C and D). Verify that all dimensions meet the specified limits for comfortable hand grip.\n3.Check that users can easily reach and hold the grab handle without interference from nearby parts. Measure the access clearance and verify that it is greater than 40 mm.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-501-03-1.webp",
+    "UDVP-501-03-2.webp"
+   ]
   },
   {
    "code": "UDVP-501-04",
@@ -1514,7 +1789,11 @@
    "acceptanceCriteria": "1.Centre point of the handle shall be within the defined target comfort zone with respect to Ground and SgRP.\n2.Handle length A > 105 mm; Handle thickness C = 20-30 mm; Handle thickness D = 30-35 mm.\n3.Handle shall be accessible without hindrance from surrounding items. Access clearance > 40 mm.",
    "procedure": "1.Check that the centre point of the grab handle is within the target reach zone for all intended users when measured from both Ground and SgRP references.\n2.Measure the handle length (A) and thickness dimensions (C and D). Verify that all dimensions are within the specified limits for a comfortable grip.\n3.Check that users can easily reach and hold the handle without interference from nearby components. Verify that the available hand clearance is greater than 40 mm.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-501-04-1.webp",
+    "UDVP-501-04-2.webp"
+   ]
   },
   {
    "code": "UDVP-502-01",
@@ -1532,7 +1811,11 @@
    "acceptanceCriteria": "1.Sunvisor coverage at fully open condition shall meet architecture target. Angle A = -1° to 2°.\n2.Sunvisor coverage @ fully open condition to meet architecture target B pillar to Sunvisor X distance = 80 to 100\n3.Sun Visor width Y >390\n4.Architecture standard target (Lower Tumble Angle Vehicles) \nEye mid to LH  Coverage = 205 - 215\nEye mid to RH Coverage = 180 - 190\n5.Finger access clearance - Headliner with sunvisor \nType 1 – Finger gap G= 15mm /  Length L – 90mm",
    "procedure": "1.Open the sunvisor to the working position and measure Angle A. Verify that the angle is within -1° to 2° to provide the required front visibility coverage.\n2.Open the sunvisor and measure the distance between the B-pillar reference and the sunvisor edge. Verify that the distance is between 80 mm and 100 mm.\n3.Measure the effective width (Y) of the sunvisor and verify that it is greater than 390 mm to achieve the required visibility coverage.\n4.Measure the coverage distance from the eye midpoint to the left-hand (LH) and right-hand (RH) edges of the sunvisor. Verify that both dimensions are within the specified ranges.\n5.Check that sufficient finger clearance is available between the headliner and sunvisor for easy operation. Measure finger gap (G) and length (L) as applicable and verify compliance with the specified requirements.",
    "procedureAvailable": true,
-   "vrCapability": "Partial"
+   "vrCapability": "Partial",
+   "referenceImages": [
+    "UDVP-502-01-1.webp",
+    "UDVP-502-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-502-02",
@@ -1550,7 +1833,11 @@
    "acceptanceCriteria": "1.Vanity mirror shall be reachable for all users ranging from 5'0\" to 6'03\" in buckled condition without stretching from their seating position.\n2.Vanity mirror shall be accessible without any hindrance from surrounding items.",
    "procedure": "1.Verify that users can comfortably reach and operate the vanity mirror from the normal seated and buckled position without excessive body movement or stretching.\n2.Verify that the vanity mirror can be easily opened, closed, and used without interference from the sunvisor, headliner, grab handle, roof trim, or other surrounding components.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-502-02-1.webp",
+    "UDVP-502-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-502-03",
@@ -1568,7 +1855,11 @@
    "acceptanceCriteria": "1.Should be reachable to all users (5’00’’, 5’06’’, 5’11’’ & 6’03’’) in driving condition\n2.Should be accessible without any hindrance with surrounding items. Clearance required between beauty cover/overhead console to IRVM top left edge of the IRVM  vertical gap of minimum 35mm is required\n3.Should be positioned with minimal head rotation angle for the user",
    "procedure": "1.Verify that all intended users can comfortably reach and adjust the IRVM from their normal driving position without excessive stretching.\n2.Verify that the user can easily access and operate the IRVM without interference from the overhead console, beauty cover, headliner, or other nearby components. Measure the minimum clearance and ensure it is at least 35 mm.\n3.Verify that the IRVM location allows the user to view and adjust the mirror with minimal head movement while maintaining a normal driving posture.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-502-03-1.webp",
+    "UDVP-502-03-2.webp"
+   ]
   },
   {
    "code": "VDVP-503-01",
@@ -1586,7 +1877,11 @@
    "acceptanceCriteria": "1.Overhead console switches should be reachable for all users (5'0\" to 6'03\") in buckled condition without stretching from their seating position.\n2.Switches should be accessible without any hindrance from surrounding items.\n3.Button Spacing (A) = 13 mm, Button Contact Diameter (B) = 13 mm, Finger Insertion Clearance (C) = 25 mm, Under-tip Clearance (D) = 18 mm.",
    "procedure": "1.Verify that all intended users can comfortably reach and operate the overhead console switches from their normal seated and buckled driving position without excessive stretching.\n2.Verify that the switches can be easily identified and operated without interference from the headliner, sunvisor, IRVM, overhead console housing, or other nearby components.\n3.Measure button spacing, contact area, finger insertion clearance, and under-tip clearance. Verify that all dimensions meet the specified targets to ensure easy and error-free operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "VDVP-503-01-1.webp",
+    "VDVP-503-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-503-02",
@@ -1604,7 +1899,11 @@
    "acceptanceCriteria": "1.Overhead console switches should be reachable for all users (5'0\" to 6'03\") in buckled condition without stretching from their seating position.\n2.Switches should be accessible without any hindrance from surrounding items.\n3.Button Spacing (A) = 13 mm, Button Contact Diameter (B) = 13 mm, Finger Insertion Clearance (C) = 25 mm, Under-tip Clearance (D) = 18 mm.",
    "procedure": "1.Verify that all intended users can comfortably reach and operate the overhead console switches from their normal seated and buckled driving position without excessive stretching.\n2.Verify that the switches can be easily identified and operated without interference from the headliner, sunvisor, IRVM, overhead console housing, or other nearby components.\n3.Measure button spacing, contact area, finger insertion clearance, and under-tip clearance. Verify that all dimensions meet the specified targets to ensure easy and error-free operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-503-02-1.webp",
+    "UDVP-503-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-503-03",
@@ -1622,7 +1921,10 @@
    "acceptanceCriteria": "1.Overhead console lamp and 2nd row roof lamp shall be reachable for all users (5'0\" to 6'03\") in buckled condition without stretching from their seating positions.\n2.Lamp switch should be accessible without any hindrance from surrounding items.\n3.Button Contact Diameter (A) = 13 mm, Button Spacing (B) = 13 mm.",
    "procedure": "1.Verify that all intended users can comfortably reach and operate the lamp switch from their normal seated and buckled position without excessive stretching.\n2.Verify that the lamp switch can be easily identified and operated without interference from the headliner, grab handle, sunvisor, overhead console, or other nearby components.\n3.Measure the button contact area and spacing between adjacent buttons. Verify that both dimensions meet the specified requirements for easy and accurate operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-503-03-1.webp"
+   ]
   },
   {
    "code": "UDVP-504-01",
@@ -1640,7 +1942,10 @@
    "acceptanceCriteria": "1.Overhead console lamp and 2nd row roof lamp shall be reachable for all users (5'0\" to 6'03\") in buckled condition without stretching from their seating positions.\n2.Lamp switch should be accessible without any hindrance from surrounding items.\n3.Button Contact Diameter (A) = 13 mm, Button Spacing (B) = 13 mm.",
    "procedure": "1.Verify that all intended users can comfortably reach and operate the lamp switch from their normal seated and buckled position without excessive stretching.\n2.Verify that the lamp switch can be easily identified and operated without interference from the headliner, grab handle, sunvisor, overhead console, or other nearby components.\n3.Measure the button contact area and spacing between adjacent buttons. Verify that both dimensions meet the specified requirements for easy and accurate operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-504-01-1.webp"
+   ]
   },
   {
    "code": "UDVP-505-01",
@@ -1658,7 +1963,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-506-01",
@@ -1676,7 +1982,11 @@
    "acceptanceCriteria": "1.Minimum 45 mm clearance shall be maintained all around the head of the target population.",
    "procedure": "1.Verify the minimum distance between the occupant's head and surrounding interior components such as headliner, grab handles, overhead console, roof lamp, sunvisor, and pillars. Ensure a minimum clearance of 45 mm is available around the head for all target users in both Row 1 and Row 2 seating positions.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-506-01-1.webp",
+    "UDVP-506-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-601-01",
@@ -1694,7 +2004,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-601-02",
@@ -1712,7 +2023,11 @@
    "acceptanceCriteria": "1.Handle position in Z (Height from unladen ground) to be in line with benchmark vehicles.\n2.Four-finger operation requirement.\nPocket Width (A) > 32 mm & Pocket Depth (B) > 30 mm & Grasp Clearance (C) > 60 mm & Pocket Height (D) > 90 mm\n3.Should be accessible without any hindrance from surrounding items.\n4.Ease of Access",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to easily locate and access the handle from the intended standing position. Verify handle location is ergonomically positioned and comparable to benchmark vehicles.\n2.The occupant population (5'00\" to 6'03\") shall be able to insert four fingers, comfortably grasp, and operate the handle without finger rubbing or knuckle contact. Verify all clearance dimensions meet the specified targets.\n3.The occupant population (5'00\" to 6'03\") shall be able to access and operate the handle without interference from adjacent components or surrounding features.\n4.The occupant population (5'00\" to 6'03\") shall be able to comfortably reach, grasp, and operate the handle with a natural posture and minimal effort.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-601-02-1.webp",
+    "UDVP-601-02-2.webp"
+   ]
   },
   {
    "code": "UDVP-601-03",
@@ -1730,7 +2045,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-601-04",
@@ -1748,7 +2064,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "VDVP-601-05",
@@ -1766,7 +2083,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-602-01",
@@ -1784,7 +2102,11 @@
    "acceptanceCriteria": "1.Spare wheel position in Z - Height from unladen ground to be inline with benchmark vehicles.\n2.Should be accessible without any obstruction from surrounding items.",
    "procedure": "1.The occupant population (5'00\" to 6'03\") shall be able to access and retrieve the spare wheel comfortably without excessive bending, stretching, or awkward posture. Verify the spare wheel position is comparable to benchmark vehicles.\n2.The occupant population (5'00\" to 6'03\") shall be able to access, remove, and reinstall the spare wheel without interference from surrounding components or luggage compartment features. Verify adequate access clearance is available.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-602-01-1.webp",
+    "UDVP-602-01-2.webp"
+   ]
   },
   {
    "code": "UDVP-602-02",
@@ -1802,7 +2124,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-602-03",
@@ -1820,7 +2143,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-603-01",
@@ -1838,7 +2162,12 @@
    "acceptanceCriteria": "1.To accommodate 2 Large & 1 Medium trolley bags.\n2.To accommodate 2 Large, 1 Medium & 2 Small trolley bags.",
    "procedure": "1.Verify that the luggage compartment can accommodate 2 large and 1 medium trolley bags below the seat back height without interference and allows convenient loading/unloading.\n2.Verify that the luggage compartment can accommodate 2 large, 1 medium, and 2 small trolley bags up to roof height while allowing practical placement and removal of luggage.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-603-01-1.webp",
+    "UDVP-603-01-2.webp",
+    "UDVP-603-01-3.webp"
+   ]
   },
   {
    "code": "UDVP-603-02",
@@ -1856,7 +2185,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-701-01",
@@ -1874,7 +2204,14 @@
    "acceptanceCriteria": "1.The door should open easily, and the door handle operation should be simple to use\n2.The Height of the Front  door ODH from Ground should be accesble for all manikins\n3.Door Opening Key Access Clearance - Should be enough clearance between door handle to  key slot",
    "procedure": "1.Refer the Image # 1 to Evaluvate and ensure the clearance between door handle to  key slot\n2.Refer the Image # 5 Check and verify that the door handle is accessible for all Manikins representing the 5, 5'6\", 5'11\", and 6'3\" user populations\n3.Refer the Image # 4 to Evaluvate and ensure the Door Handle smooth Operation",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-701-01-1.webp",
+    "UDVP-701-01-2.webp",
+    "UDVP-701-01-3.webp",
+    "UDVP-701-01-4.webp",
+    "UDVP-701-01-5.webp"
+   ]
   },
   {
    "code": "UDVP-701-02",
@@ -1892,7 +2229,14 @@
    "acceptanceCriteria": "1.The door should open easily, and the door handle operation should be simple to use\n2.The Height of the Front  door ODH from Ground should be accesble for all manikins\n3.Door Opening Key Access Clearance - Should be enough clearance between door handle to  key slot",
    "procedure": "1.Refer the Image # 1 to Evaluvate and ensure the clearance between door handle to  key slot\n2.Refer the Image # 5 Check and verify that the door handle is accessible for all Manikins representing the 5, 5'6\", 5'11\", and 6'3\" user populations\n3.Refer the Image # 4 to Evaluvate and ensure the Door Handle smooth Operation",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-701-02-1.webp",
+    "UDVP-701-02-2.webp",
+    "UDVP-701-02-3.webp",
+    "UDVP-701-02-4.webp",
+    "UDVP-701-02-5.webp"
+   ]
   },
   {
    "code": "UDVP-701-03",
@@ -1910,7 +2254,13 @@
    "acceptanceCriteria": "1.The foot swing envelope clears the door trim when the door is in the fully open position (First row - Door @ full opened condition 67 Degree , second row - 75 Degree)\n2.During ingress, while opening the door, the door swing path should not come close to the occupant.\n3.The open hood should not interfere with the user's head for all manikins\n4.Accessability to reach the Hood  top edge at open condition to comfortably reach the hood and access under-hood areas during hood opening, closing, and maintenance activities",
    "procedure": "1.Foot Swing Clearance: The foot swing envelope shall clear the door trim without interference when the door is fully open at 67° and 75°.\n2.Door Swing Path Clearance: During door opening, the door swing path shall maintain sufficient clearance from the occupant and shall not encroach on the occupant envelope.\n3.Hood Head Clearance: The hood, in the fully open position, shall not interfere with the head envelope of any evaluated manikin.\n4.Hood Reach Accessibility: Users shall be able to comfortably reach the hood top edge in the open position for hood opening, closing, and under-hood maintenance activities.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-701-03-1.webp",
+    "UDVP-701-03-2.webp",
+    "UDVP-701-03-3.webp",
+    "UDVP-701-03-4.webp"
+   ]
   },
   {
    "code": "UDVP-702-01",
@@ -1928,7 +2278,10 @@
    "acceptanceCriteria": "1.The fuel door swith Should be accessible without any hindrance with surrounding items",
    "procedure": "1.Check the Fuel door release lever  easily accesble from the driver seat position ( Refer Image # 1)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-702-01-1.webp"
+   ]
   },
   {
    "code": "UDVP-702-02",
@@ -1946,7 +2299,8 @@
    "acceptanceCriteria": "1.Fuel lid position Should be accessible without any hindrance from surrounding items. \nEnsure Two finger gap to open the fuel lid to body",
    "procedure": "1.Check the fuel door after popup condition whether the gap is there or not to open the Fuel door with two finger option & check the Fuel flap postion is accessable for all the manikin postions from the Ground",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "UDVP-702-03",
@@ -1964,7 +2318,10 @@
    "acceptanceCriteria": "1. Fuel tank Cap Should be within the acceptable height from the ground\nUser should be able to open/close fuel flap without any obstruction\nUser should be able to access filler cap without any obstruction",
    "procedure": "1.Check the he fuel filler system shall be positioned within an acceptable height from the ground, for allowing the user to access the fuel flap and filler cap and perform opening/closing operations without any obstruction ( Refer Image # 1)",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-702-03-1.webp"
+   ]
   },
   {
    "code": "UDVP-702-04",
@@ -1982,7 +2339,11 @@
    "acceptanceCriteria": "1.Lever position to be optimal from vehicle centerline and hood opening for ease of use & Lever should have adequate clearance with surrounding components",
    "procedure": "1.Check the Hood release lever  whether it is accessble for all the manikin positions",
    "procedureAvailable": true,
-   "vrCapability": "Partial"
+   "vrCapability": "Partial",
+   "referenceImages": [
+    "UDVP-702-04-1.webp",
+    "UDVP-702-04-2.webp"
+   ]
   },
   {
    "code": "UDVP-702-05",
@@ -2000,7 +2361,12 @@
    "acceptanceCriteria": "1. 6’00’’ user should have a minimum 50mm clearance from hood in open condition\nHood & Hood stay rod Should be within grab reach zone of 5’00” Occupant\nStay rod should be Reach & Accessible for all the target user without any hindrance",
    "procedure": "1.Check the Hood rod is accessable for all the manikin positions.\nAlso Check 50 mm minimum clearance for the 6 feet user.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-702-05-1.webp",
+    "UDVP-702-05-2.webp",
+    "UDVP-702-05-3.webp"
+   ]
   },
   {
    "code": "UDVP-703-01",
@@ -2018,7 +2384,8 @@
    "acceptanceCriteria": "PPT NOT AVAILABLE",
    "procedure": "PPT NOT AVAILABLE",
    "procedureAvailable": false,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "UDVP-703-02",
@@ -2036,7 +2403,10 @@
    "acceptanceCriteria": "1.Should be accessible without any hindrance with surrounding items.\nfor all populations ranging from 5’00” to 6’03”",
    "procedure": "1.Check whether the foot is properly placed on the Foot rest and Ensure the width of the Foot rest is minimum 110mm.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": [
+    "UDVP-703-02-1.webp"
+   ]
   },
   {
    "code": "VDVP-801-01",
@@ -2054,7 +2424,8 @@
    "acceptanceCriteria": "1.Infotainment Reflection should not fall In Windshield A zone for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location . \n2.Infotainment Reflection should not fall in ORVM viewing area for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location",
    "procedure": "1.Infotainment Reflection should not fall In Windshield A zone for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location . \n2.Infotainment Reflection should not fall in ORVM viewing area for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-801-02",
@@ -2072,7 +2443,8 @@
    "acceptanceCriteria": "1.ClusterReflection should not fall In Windshield A zone for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location . \n2.Infotainment Reflection should not fall in ORVM viewing area for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location",
    "procedure": "1.ClusterReflection should not fall In Windshield A zone for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location . \n2.Infotainment Reflection should not fall in ORVM viewing area for all populations ranging from 5’00” to 6’03” positioned at their respective nominal seating location",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-801-03",
@@ -2090,7 +2462,8 @@
    "acceptanceCriteria": "1.Lit components of IP reflection should not fall in driver critical field of view(A zone) in windshield\n2.Lit components of IP reflection should not fall in driver critical field of view in ORVM",
    "procedure": "1.Reflections from illuminated Instrument Panel (IP) components shall not appear within the driver's critical field of view (A-Zone) on the windshield. Such reflections shall not distract the driver or obstruct the view of the road, traffic signs, pedestrians, or other critical driving \ninformation.\n\n2.Reflections from illuminated Instrument Panel (IP) components shall not be visible in the Outside Rear View Mirror (ORVM). Reflected images shall not interfere with the driver's ability to clearly observe rear and adjacent traffic, ensuring safe visibility during driving.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-801-04",
@@ -2108,7 +2481,8 @@
    "acceptanceCriteria": "1.During Day and Nigh Unlit components of IP reflection should not fall in driver critical field of view in windshield  & If reflection falls, Driver’s Vision should not get distracted",
    "procedure": "1.During day and night conditions, reflections from unlit IP components shall not appear in the driver's critical field of view on the windshield. If reflections are present, they shall not distract the driver or impair forward visibility.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-801-05",
@@ -2126,7 +2500,8 @@
    "acceptanceCriteria": "1.Evaluvate the IP & Door trim Ambient Lights reflection fall on windshield/SideGlass/ORVM under street light",
    "procedure": "1.Evaluate IP and Door Trim ambient light reflections on the windshield, side glass, and ORVM under street-light conditions. Reflections shall not cause distraction, glare, or obstruct the driver's critical field of view.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-802-01",
@@ -2144,7 +2519,8 @@
    "acceptanceCriteria": "1.There should not be any direct sunlight falling on Cluster Screen through windshield, whenever vehicle is travelling from West to East  & If direct sunlight falls on cluster screen , there should not be any visual obstruction for driver on the screen",
    "procedure": "1.Direct sunlight through the windshield shall not fall on the instrument cluster screen during West-to-East vehicle travel. If sunlight exposure occurs, all displayed information shall remain clearly visible and legible, without glare, reflections, or screen washout that could obstruct the driver's view or cause distraction.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-802-02",
@@ -2162,7 +2538,8 @@
    "acceptanceCriteria": "1.There should not be any direct sunlight falling on infotainment Screen through windshield, whenever vehicle is travelling from West to East  If direct sunlight falls on infotainment screen , there should not be any visual obstruction for driver on the screen",
    "procedure": "1.Direct sunlight entering through the windshield shall not fall on the infotainment screen during West-to-East vehicle travel. If direct sunlight exposure occurs, all displayed information, including text, symbols, graphics, and icons, shall remain clearly visible and legible. Sunlight-induced glare, reflections, or screen washout shall not cause visual obstruction, reduce readability, or distract the driver during vehicle operation.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-803-01",
@@ -2180,7 +2557,8 @@
    "acceptanceCriteria": "1.No Reflection through Day Light Opening (DLO) should be visible in the Cluster to avoid driver distraction / visual obscuration.",
    "procedure": "1.Reflections originating from the Day Light Opening (DLO) shall not be visible on the instrument cluster display. If reflections are present, they shall not distract the driver, obstruct the display, or impair the visibility and legibility of cluster text, symbols, tell-tales, graphics, and critical driving information under any lighting condition.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "VDVP-803-02",
@@ -2198,7 +2576,8 @@
    "acceptanceCriteria": "1.No Reflection through Day Light Opening (DLO) should be visible in the Infotainment to avoid driver distraction / visual obscuration.",
    "procedure": "1.Reflections originating from the Day Light Opening (DLO) shall not be visible on the infotainment screen. If reflections are present, they shall not distract the driver, obstruct the display, or impair the visibility and legibility of text, symbols, graphics, icons, tell-tales, or other critical information under any lighting condition.",
    "procedureAvailable": true,
-   "vrCapability": "Yes"
+   "vrCapability": "Yes",
+   "referenceImages": []
   },
   {
    "code": "UDVP-901-01",
@@ -2216,7 +2595,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-901-02",
@@ -2234,7 +2614,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-901-03",
@@ -2252,7 +2633,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-901-04",
@@ -2270,7 +2652,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-901-05",
@@ -2288,7 +2671,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-901-06",
@@ -2306,7 +2690,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "VDVP-902-01",
@@ -2324,7 +2709,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-902-02",
@@ -2342,7 +2728,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "VDVP-902-03",
@@ -2360,7 +2747,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-902-04",
@@ -2378,7 +2766,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-903-01",
@@ -2396,7 +2785,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-903-02",
@@ -2414,7 +2804,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   },
   {
    "code": "UDVP-1001-01",
@@ -2432,7 +2823,8 @@
    "acceptanceCriteria": "",
    "procedure": "",
    "procedureAvailable": false,
-   "vrCapability": "No"
+   "vrCapability": "No",
+   "referenceImages": []
   }
  ],
  "assignments": [

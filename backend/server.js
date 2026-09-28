@@ -33,6 +33,10 @@ app.get("/api/health", (req, res) => res.json({
 app.use("/api/programs", require("./routes/programs"));
 app.use("/api", (req, res) => res.status(404).json({ message: "Not found." }));
 
+// DVP reference images (from the master sheet). Names change whenever the
+// sheet is re-imported, so a day of caching is safe.
+app.use("/dvp-images", express.static(path.join(__dirname, "public", "dvp-images"), { maxAge: "1d", fallthrough: false }));
+
 // Serve the built frontend; never cache index.html (lesson from VRSP)
 const buildPath = path.join(__dirname, "build");
 const noStore = (res) => res.set("Cache-Control", "no-store, no-cache, must-revalidate");

@@ -20,6 +20,8 @@ const dvpSchema = new mongoose.Schema({
   procedure:           { type: String, default: "" },
   procedureAvailable:  { type: Boolean, default: false },
   vrCapability:        { type: String, enum: ["Yes", "No", "Partial"], default: "No" },
+  // File names under public/dvp-images, in the sheet's column order
+  referenceImages:     { type: [String], default: [] },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Dvp", dvpSchema);

@@ -6,3 +6,5 @@ frontend/dist/
 backend/build/
 *.log
 .DS_Store
+__pycache__/
+*.pyc

@@ -1,7 +1,5 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchPrograms, fetchProgramDvps } from "./api.js";
-
-const COMPLETION_FILTERS = ["All", "Done", "Not done"];
 
 function readProgramFromUrl() {
   return new URLSearchParams(window.location.search).get("program") || "";
@@ -21,15 +19,15 @@ export default function App() {
   const [error, setError] = useState("");
 
   const [zone, setZone] = useState("All");
-  const [completion, setCompletion] = useState("All");
+  const [area, setArea] = useState("All");
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState(() => new Set());
+  const [viewer, setViewer] = useState(null); // { dvp, index }
 
   useEffect(() => {
     fetchPrograms()
       .then((list) => {
         setPrograms(list);
-        // Only one program: select it, nothing to choose between
         if (!readProgramFromUrl() && list.length === 1) setProgramCode(list[0].code);
       })
       .catch((err) => { setStatus("error"); setError(err.message); });
@@ -40,7 +38,7 @@ export default function App() {
     if (!programCode) { setData(null); setStatus("idle"); return; }
     let cancelled = false;
     setStatus("loading");
-    setZone("All"); setCompletion("All"); setQuery(""); setExpanded(new Set());
+    setZone("All"); setArea("All"); setQuery(""); setExpanded(new Set()); setViewer(null);
     fetchProgramDvps(programCode)
       .then((res) => { if (!cancelled) { setData(res); setStatus("ready"); } })
       .catch((err) => { if (!cancelled) { setStatus("error"); setError(err.message); } });
@@ -48,35 +46,24 @@ export default function App() {
   }, [programCode]);
 
   const dvps = data?.dvps || [];
+
   const zones = useMemo(() => {
     const seen = new Map();
     dvps.forEach((d) => seen.set(d.zone.name, d.zone.order));
     return [...seen.entries()].sort((a, b) => a[1] - b[1]).map(([name]) => name);
   }, [dvps]);
+  const areas = useMemo(() => [...new Set(dvps.map((d) => d.ergonomicsArea).filter(Boolean))].sort(), [dvps]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return dvps.filter((d) =>
       (zone === "All" || d.zone.name === zone) &&
-      (completion === "All" || d.completedStatus === completion) &&
+      (area === "All" || d.ergonomicsArea === area) &&
       (!q || [d.dvpNumber, d.evaluationParameter, d.component, d.fullName]
-        .some((v) => v.toLowerCase().includes(q))));
-  }, [dvps, zone, completion, query]);
+        .some((v) => (v || "").toLowerCase().includes(q))));
+  }, [dvps, zone, area, query]);
 
-  const grouped = useMemo(() => {
-    const groups = [];
-    visible.forEach((d) => {
-      const last = groups[groups.length - 1];
-      if (last && last.zone === d.zone.name) last.items.push(d);
-      else groups.push({ zone: d.zone.name, order: d.zone.order, items: [d] });
-    });
-    return groups;
-  }, [visible]);
-
-  const done = dvps.filter((d) => d.completedStatus === "Done");
-  const green = done.filter((d) => d.result === "Green").length;
-  const red = done.filter((d) => d.result === "Red").length;
-  const filtersActive = zone !== "All" || completion !== "All" || query.trim() !== "";
+  const filtersActive = zone !== "All" || area !== "All" || query.trim() !== "";
 
   const toggle = (num) => setExpanded((prev) => {
     const next = new Set(prev);
@@ -103,9 +90,7 @@ export default function App() {
       </header>
 
       <main>
-        {status === "idle" && (
-          <p className="notice">Choose a program to see the DVPs that apply to it.</p>
-        )}
+        {status === "idle" && <p className="notice">Choose a program to see the DVPs that apply to it.</p>}
         {status === "loading" && <p className="notice" role="status">Loading DVPs for {programCode}…</p>}
         {status === "error" && (
           <p className="notice notice-error" role="alert">{error} Check that the server is running, then reload the page.</p>
@@ -113,12 +98,7 @@ export default function App() {
 
         {status === "ready" && (
           <>
-            <p className="summary">
-              <strong>{dvps.length}</strong> DVPs apply to {data.program.code}.{" "}
-              {done.length === 0
-                ? "None are done yet."
-                : <><strong>{done.length}</strong> are done: <span className="res res-green">{green} green</span>, <span className="res res-red">{red} red</span>.</>}
-            </p>
+            <p className="summary"><strong>{dvps.length}</strong> DVPs apply to {data.program.code}.</p>
 
             <div className="filters">
               <label>
@@ -129,19 +109,20 @@ export default function App() {
                 </select>
               </label>
               <label>
-                <span>Completed</span>
-                <select value={completion} onChange={(e) => setCompletion(e.target.value)}>
-                  {COMPLETION_FILTERS.map((c) => <option key={c}>{c}</option>)}
+                <span>Ergonomic area</span>
+                <select value={area} onChange={(e) => setArea(e.target.value)}>
+                  <option>All</option>
+                  {areas.map((a) => <option key={a}>{a}</option>)}
                 </select>
               </label>
               <label className="search">
                 <span>Search</span>
-                <input type="search" value={query} placeholder="DVP number, parameter or component"
+                <input type="search" value={query} placeholder="DVP number, component or evaluation"
                   onChange={(e) => setQuery(e.target.value)} />
               </label>
               {filtersActive && (
                 <button type="button" className="link-btn"
-                  onClick={() => { setZone("All"); setCompletion("All"); setQuery(""); }}>
+                  onClick={() => { setZone("All"); setArea("All"); setQuery(""); }}>
                   Clear filters
                 </button>
               )}
@@ -155,47 +136,42 @@ export default function App() {
                 <table>
                   <thead>
                     <tr>
-                      <th scope="col" className="col-num">DVP number</th>
-                      <th scope="col" className="col-param">Evaluation parameter</th>
-                      <th scope="col" className="col-status">Completed</th>
-                      <th scope="col">Remarks</th>
-                      <th scope="col">Acceptance criteria</th>
-                      <th scope="col">Procedure</th>
+                      <th scope="col" className="col-num">DVP no.</th>
+                      <th scope="col" className="col-component">Component</th>
+                      <th scope="col" className="col-eval">Evaluation</th>
+                      <th scope="col" className="col-zone">Zone</th>
+                      <th scope="col" className="col-area">Ergonomic area</th>
+                      <th scope="col" className="col-cas">CAS</th>
+                      <th scope="col" className="col-text">Acceptance criteria</th>
+                      <th scope="col" className="col-text">Procedure</th>
+                      <th scope="col" className="col-images">Image reference</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {grouped.map((g) => (
-                      <Fragment key={g.zone}>
-                        <tr className="zone-band">
-                          <th colSpan={6} scope="colgroup">
-                            <span className="zone-no">Zone {g.order}</span> {g.zone}
-                            <span className="zone-count">{g.items.length} DVP{g.items.length === 1 ? "" : "s"}</span>
-                          </th>
+                    {visible.map((d) => {
+                      const open = expanded.has(d.dvpNumber);
+                      return (
+                        <tr key={d.dvpNumber} className={open ? "row open" : "row"}>
+                          <td className="col-num">
+                            <button type="button" className="row-toggle" aria-expanded={open}
+                              onClick={() => toggle(d.dvpNumber)}
+                              title={open ? "Show less" : "Show full text"}>
+                              {d.dvpNumber}
+                            </button>
+                          </td>
+                          <td className="col-component">{d.component || <span className="muted">—</span>}</td>
+                          <td className="col-eval">{d.evaluationParameter}</td>
+                          <td className="col-zone">{d.zone.name}</td>
+                          <td className="col-area">{d.ergonomicsArea}</td>
+                          <td className="col-cas">{d.cas}</td>
+                          <td className="col-text"><Clamp text={d.acceptanceCriteria} open={open} empty="Not defined yet" /></td>
+                          <td className="col-text"><Clamp text={d.procedure} open={open} empty="Not defined yet" /></td>
+                          <td className="col-images">
+                            <Thumbnails dvp={d} onOpen={(index) => setViewer({ dvp: d, index })} />
+                          </td>
                         </tr>
-                        {g.items.map((d) => {
-                          const open = expanded.has(d.dvpNumber);
-                          return (
-                            <tr key={d.dvpNumber} className={open ? "row open" : "row"}>
-                              <td className="col-num">
-                                <button type="button" className="row-toggle" aria-expanded={open}
-                                  onClick={() => toggle(d.dvpNumber)}
-                                  title={open ? "Show less" : "Show full text"}>
-                                  {d.dvpNumber}
-                                </button>
-                              </td>
-                              <td className="col-param">
-                                <div className="param">{d.evaluationParameter}</div>
-                                <div className="component">{d.component}</div>
-                              </td>
-                              <td className="col-status"><Completion dvp={d} /></td>
-                              <td><Clamp text={d.remarks} open={open} /></td>
-                              <td><Clamp text={d.acceptanceCriteria} open={open} empty="Not defined yet" /></td>
-                              <td><Clamp text={d.procedure} open={open} empty="Not defined yet" /></td>
-                            </tr>
-                          );
-                        })}
-                      </Fragment>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -203,24 +179,8 @@ export default function App() {
           </>
         )}
       </main>
-    </div>
-  );
-}
 
-function Completion({ dvp }) {
-  if (dvp.completedStatus === "Done") {
-    const cls = dvp.result === "Green" ? "res-green" : dvp.result === "Red" ? "res-red" : "";
-    return (
-      <div>
-        <span className="status status-done">Done</span>
-        {dvp.result !== "Pending" && <div className={`res ${cls}`}>{dvp.result}</div>}
-      </div>
-    );
-  }
-  return (
-    <div>
-      <span className="status">Not done</span>
-      {dvp.reason && <div className="reason">{dvp.reason}</div>}
+      {viewer && <ImageViewer {...viewer} onClose={() => setViewer(null)} />}
     </div>
   );
 }
@@ -228,4 +188,75 @@ function Completion({ dvp }) {
 function Clamp({ text, open, empty = "—" }) {
   if (!text) return <span className="muted">{empty}</span>;
   return <div className={open ? "cell-text" : "cell-text clamped"}>{text}</div>;
+}
+
+function Thumbnails({ dvp, onOpen }) {
+  const images = dvp.referenceImages || [];
+  if (images.length === 0) return <span className="muted">No image</span>;
+  // Two thumbnails at most, so rows stay compact; the rest open in the viewer
+  const shown = images.slice(0, 2);
+  const more = images.length - shown.length;
+  return (
+    <div className="thumbs">
+      {shown.map((src, i) => (
+        <button key={src} type="button" className="thumb" onClick={() => onOpen(i)}
+          aria-label={`Open image ${i + 1} of ${images.length} for ${dvp.dvpNumber}`}>
+          <img src={src} alt="" loading="lazy" decoding="async" />
+        </button>
+      ))}
+      {more > 0 && (
+        <button type="button" className="thumb-more" onClick={() => onOpen(2)}
+          aria-label={`Open ${more} more image${more === 1 ? "" : "s"} for ${dvp.dvpNumber}`}>
+          +{more}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ImageViewer({ dvp, index: startIndex, onClose }) {
+  const images = dvp.referenceImages;
+  const [index, setIndex] = useState(startIndex);
+  const closeRef = useRef(null);
+  const step = useCallback((delta) => setIndex((i) => (i + delta + images.length) % images.length), [images.length]);
+
+  useEffect(() => {
+    const opener = document.activeElement;
+    closeRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight") step(1);
+      else if (e.key === "ArrowLeft") step(-1);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      opener?.focus?.();   // return focus to the thumbnail that opened it
+    };
+  }, [onClose, step]);
+
+  return (
+    <div className="viewer" role="dialog" aria-modal="true"
+      aria-label={`Reference images for ${dvp.dvpNumber}`} onClick={onClose}>
+      <div className="viewer-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="viewer-head">
+          <div>
+            <strong>{dvp.dvpNumber}</strong>
+            <span className="viewer-title">{dvp.component} — {dvp.evaluationParameter}</span>
+          </div>
+          <button type="button" ref={closeRef} className="viewer-close" onClick={onClose}>Close</button>
+        </div>
+        <img className="viewer-img" src={images[index]} alt={`Reference image ${index + 1} for ${dvp.dvpNumber}`} />
+        {images.length > 1 && (
+          <div className="viewer-nav">
+            <button type="button" onClick={() => step(-1)}>Previous</button>
+            <span>Image {index + 1} of {images.length}</span>
+            <button type="button" onClick={() => step(1)}>Next</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
