@@ -43,7 +43,7 @@ export default function DvpsView({ programCode, user }) {
   const editingDvp = dvps.find((d) => d.code === editing) || null;
   const canEdit = user.role === "ADMIN" || user.role === "USER";
 
-  // The LOP tab reports its count so the table's "LOP · n" button stays right without reloading
+  // The LOP tab reports its count so the table's "LOP (n)" button stays right without reloading
   const onLopChanged = (code, count, last) => setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === code ? { ...d, lopCount: count, lastLopAt: last } : d)) }));
 
   const onSaved = (updated) => {
@@ -68,7 +68,7 @@ export default function DvpsView({ programCode, user }) {
 
   return (
     <>
-      <p className="summary"><strong>{dvps.length}</strong> DVPs apply to {programCode}. <strong>{done}</strong> are done.</p>
+      <Overview dvps={dvps} done={done} colorFilter={colorFilter} onColour={(c) => setColorFilter(colorFilter === c ? "All" : c)} />
       <div className="flash" role="status" aria-live="polite">{flash}</div>
 
       <div className="filters">
@@ -138,7 +138,7 @@ export default function DvpsView({ programCode, user }) {
                     <div className="status-color"><ColorTag color={d.color} /></div>
                     {(d.color === "Red" || d.lopCount > 0) && (
                       <button type="button" className="lop-btn" onClick={() => { setEditTab("lop"); setEditing(d.code); }}
-                        title={d.lopCount ? "Open the LOP history" : "Raise a LOP concern"}>{d.lopCount ? `LOP · ${d.lopCount}` : "Raise LOP"}</button>
+                        title={d.lopCount ? "Open the LOP history" : "Raise a LOP concern"}>{d.lopCount ? `LOP (${d.lopCount})` : "Raise LOP"}</button>
                     )}
                   </td>
                   <td className="col-remarks"><Clamp text={d.remarks} /></td>
@@ -275,5 +275,38 @@ function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClos
         </div>
       </aside>
     </div>
+  );
+}
+
+// The program at a glance: progress, how many DVPs carry each colour (select one to filter the table), and LOP concerns
+function Overview({ dvps, done, colorFilter, onColour }) {
+  const total = dvps.length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const count = (c) => dvps.filter((d) => (c === "None" ? !d.color : d.color === c)).length;
+  const lopEntries = dvps.reduce((n, d) => n + (d.lopCount || 0), 0);
+  const lopDvps = dvps.filter((d) => d.lopCount > 0).length;
+  const chips = [["Red", "c-red", "Red"], ["Blue", "c-blue", "Blue"], ["Green", "c-green", "Green"], ["None", "", "No colour"]];
+  return (
+    <section className="overview" aria-label="Program overview">
+      <div className="ov-block">
+        <p className="ov-label">Progress</p>
+        <p className="ov-value">{done} of {total} done<small>{pct}%</small></p>
+        <div className="ov-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="DVPs done"><span style={{ width: `${pct}%` }} /></div>
+      </div>
+      <div className="ov-block">
+        <p className="ov-label">Colour (select one to show only those DVPs)</p>
+        <div className="ov-colours">
+          {chips.map(([value, cls, label]) => (
+            <button key={value} type="button" className={`ov-chip ${cls}`} aria-pressed={colorFilter === value} onClick={() => onColour(value)}>
+              {label} <strong>{count(value)}</strong>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="ov-block">
+        <p className="ov-label">LOP concerns</p>
+        <p className="ov-value">{lopEntries === 0 ? "None raised" : lopEntries}{lopEntries > 0 && <small>on {lopDvps} DVP{lopDvps === 1 ? "" : "s"}</small>}</p>
+      </div>
+    </section>
   );
 }
