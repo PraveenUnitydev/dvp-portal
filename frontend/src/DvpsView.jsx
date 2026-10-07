@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchProgramDvps, updateProgramDvp } from "./api.js";
 import { COLORS, Clamp, ColorTag, ImageViewer, Thumbnails, useZones } from "./shared.jsx";
+import LopPanel from "./LopPanel.jsx";
 
 const MAX_REMARKS = 2000;
 
@@ -14,6 +15,7 @@ export default function DvpsView({ programCode, user }) {
   const [query, setQuery] = useState("");
   const [viewer, setViewer] = useState(null);
   const [editing, setEditing] = useState(null); // dvp code
+  const [editTab, setEditTab] = useState("details");   // which tab the drawer opens on
   const [flash, setFlash] = useState("");
 
   useEffect(() => {
@@ -40,6 +42,9 @@ export default function DvpsView({ programCode, user }) {
   const filtersActive = zone !== "All" || area !== "All" || colorFilter !== "All" || query.trim() !== "";
   const editingDvp = dvps.find((d) => d.code === editing) || null;
   const canEdit = user.role === "ADMIN" || user.role === "USER";
+
+  // The LOP tab reports its count so the table's "LOP · n" button stays right without reloading
+  const onLopChanged = (code, count, last) => setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === code ? { ...d, lopCount: count, lastLopAt: last } : d)) }));
 
   const onSaved = (updated) => {
     setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === updated.code ? updated : d)) }));
@@ -115,7 +120,7 @@ export default function DvpsView({ programCode, user }) {
               {visible.map((d) => (
                 <tr key={d.code} className="row">
                   <td className={`col-num ${d.color ? `stripe-${d.color.toLowerCase()}` : ""}`}>
-                    <button type="button" className="row-toggle" onClick={() => setEditing(d.code)}
+                    <button type="button" className="row-toggle" onClick={() => { setEditTab("details"); setEditing(d.code); }}
                       title={canEdit ? "Open details and update status" : "Open details"}>
                       {d.dvpNumber}
                     </button>
@@ -131,6 +136,10 @@ export default function DvpsView({ programCode, user }) {
                   <td className="col-status">
                     <div className={d.completedStatus === "Done" ? "status status-done" : "status"}>{d.completedStatus}</div>
                     <div className="status-color"><ColorTag color={d.color} /></div>
+                    {(d.color === "Red" || d.lopCount > 0) && (
+                      <button type="button" className="lop-btn" onClick={() => { setEditTab("lop"); setEditing(d.code); }}
+                        title={d.lopCount ? "Open the LOP history" : "Raise a LOP concern"}>{d.lopCount ? `LOP · ${d.lopCount}` : "Raise LOP"}</button>
+                    )}
                   </td>
                   <td className="col-remarks"><Clamp text={d.remarks} /></td>
                 </tr>
@@ -141,7 +150,7 @@ export default function DvpsView({ programCode, user }) {
       )}
 
       {editingDvp && (
-        <EditPanel dvp={editingDvp} programCode={programCode} canEdit={canEdit}
+        <EditPanel dvp={editingDvp} programCode={programCode} canEdit={canEdit} initialTab={editTab} onLopChanged={onLopChanged}
           onClose={() => setEditing(null)} onSaved={onSaved}
           onOpenImage={(i) => setViewer({ dvp: editingDvp, index: i })} imageOpen={Boolean(viewer)} />
       )}
@@ -150,7 +159,9 @@ export default function DvpsView({ programCode, user }) {
   );
 }
 
-function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, imageOpen }) {
+function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClose, onSaved, onOpenImage, imageOpen }) {
+  const [tab, setTab] = useState(initialTab || "details");
+  const [lopDirty, setLopDirty] = useState(false);
   const [completedStatus, setCompletedStatus] = useState(dvp.completedStatus);
   const [color, setColor] = useState(dvp.color);
   const [remarks, setRemarks] = useState(dvp.remarks);
@@ -160,7 +171,7 @@ function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, i
 
   const dirty = completedStatus !== dvp.completedStatus || color !== dvp.color || remarks.trim() !== (dvp.remarks || "");
 
-  const close = () => { if (!dirty || window.confirm("Discard your unsaved changes?")) onClose(); };
+  const close = () => { if ((!dirty && !lopDirty) || window.confirm("Discard your unsaved changes?")) onClose(); };
 
   useEffect(() => {
     const opener = document.activeElement;
@@ -203,7 +214,15 @@ function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, i
           <button type="button" className="btn" onClick={close}>Close</button>
         </div>
 
-        <div className="drawer-body">
+        <div className="drawer-tabs" role="tablist" aria-label="DVP sections">
+          <button type="button" role="tab" id="tab-details" aria-selected={tab === "details"} onClick={() => setTab("details")}>Details</button>
+          <button type="button" role="tab" id="tab-lop" aria-selected={tab === "lop"} onClick={() => setTab("lop")}>LOP concerns{dvp.lopCount ? ` (${dvp.lopCount})` : ""}</button>
+        </div>
+
+        <div className="drawer-body" role="tabpanel" aria-labelledby={tab === "lop" ? "tab-lop" : "tab-details"}>
+          {tab === "lop" ? (
+            <LopPanel programCode={programCode} dvp={dvp} onChanged={onLopChanged} onDirty={setLopDirty} />
+          ) : (<>
           {canEdit && (
             <form className="edit-form" onSubmit={save}>
               <h3>Update for {programCode}</h3>
@@ -252,6 +271,7 @@ function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, i
               )}
             </dd>
           </dl>
+          </>)}
         </div>
       </aside>
     </div>

@@ -49,5 +49,21 @@ export const createDvp = (formData) => send("POST", "/admin/dvps", { form: formD
 export const createProgram = (fields) => request("POST", "/admin/programs", fields);
 export const updateDvp = (code, formData) => send("PATCH", `/admin/dvps/${encodeURIComponent(code)}`, { form: formData });
 export const deleteDvp = (code) => request("DELETE", `/admin/dvps/${encodeURIComponent(code)}`);
+// LOP concerns: an append-only history per DVP per program
+export const fetchLop = (program, code) => request("GET", `/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(code)}/lop`);
+export const addLop = (program, code, formData) => send("POST", `/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(code)}/lop`, { form: formData });
+
+// LOP pictures are served only to signed-in people, and a plain <img> can't send the sign-in: fetch them with it
+// and show them from a local blob. Cached per sign-in so a picture is fetched once.
+const pictureCache = new Map();
+export function fetchProtectedImage(url) {
+  const key = `${getToken()}|${url}`;
+  if (!pictureCache.has(key)) {
+    pictureCache.set(key, fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } })
+      .then(async (res) => { if (!res.ok) throw new Error("The picture could not be loaded."); return URL.createObjectURL(await res.blob()); })
+      .catch((err) => { pictureCache.delete(key); throw err; }));
+  }
+  return pictureCache.get(key);
+}
 export const fetchAdminPrograms = () => request("GET", "/admin/programs");
 export const updateProgram = (code, fields) => request("PATCH", `/admin/programs/${encodeURIComponent(code)}`, fields);

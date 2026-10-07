@@ -257,3 +257,23 @@ thead th.col-num { z-index: 3; }
 .archived-row strong { font-weight: 500; }
 .row-edit input { width: 100%; min-height: 34px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--sheet); }
 .cell-actions { white-space: nowrap; display: flex; gap: 14px; }
+
+/* ── LOP concerns ─────────────────────────────────────── */
+.drawer-tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--rule); }
+.drawer-tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px 9px; font: inherit; color: var(--ink-soft); cursor: pointer; }
+.drawer-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
+.lop-btn { display: inline-block; margin-top: 6px; padding: 3px 10px; border: 1px solid var(--ink); border-radius: 999px; background: var(--sheet); color: var(--ink); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.lop-btn:hover { background: var(--hover); }
+.lop-title { margin: 22px 0 10px; font-size: 16px; }
+.lop-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.lop-entry { border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; background: var(--sheet); }
+.lop-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lop-head time { margin-left: auto; color: var(--ink-soft); font-size: 13px; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--ink); color: var(--sheet); font-size: 11px; font-weight: 600; }
+.lop-by { margin: 4px 0 8px; color: var(--ink-soft); font-size: 13px; }
+.lop-versions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin: 0 0 8px; }
+.lop-versions dt { font-size: 12px; color: var(--ink-soft); }
+.lop-versions dd { margin: 0; font-weight: 500; }
+.lop-versions .changed { color: var(--ink-soft); font-weight: 400; }
+.lop .pre, .lop-entry .pre { white-space: pre-wrap; margin: 0 0 8px; }
+.img-loading { display: block; width: 100%; height: 100%; min-height: 40px; background: var(--hover); }
