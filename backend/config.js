@@ -8,4 +8,6 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR ? path.resolve(process.env.UPLOAD_DIR)
 module.exports = {
   SHEET_IMAGE_DIR: path.join(__dirname, "public", "dvp-images"),
   UPLOAD_IMAGE_DIR: path.join(UPLOAD_DIR, "dvp-images"),
+  // Pictures attached to LOP concerns. Unlike reference images these are served only to signed-in users.
+  UPLOAD_LOP_DIR: path.join(UPLOAD_DIR, "lop-images"),
 };

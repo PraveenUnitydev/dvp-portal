@@ -42,6 +42,7 @@ app.get("/api/health", (req, res) => res.json({
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/programs", require("./routes/programs"));
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api", require("./routes/lop"));
 app.use("/api", (req, res) => res.status(404).json({ message: "Not found." }));
 
 // DVP reference images (from the master sheet). Names change whenever the

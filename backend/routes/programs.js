@@ -2,6 +2,7 @@ const express = require("express");
 const Program = require("../models/Program");
 const Dvp = require("../models/Dvp");
 const ProgramDvp = require("../models/ProgramDvp");
+const LopEntry = require("../models/LopEntry");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -25,7 +26,7 @@ async function findProgram(req, res) {
   return program;
 }
 
-function toRow(program, d, r) {
+function toRow(program, d, r, lopCount = 0) {
   return {
     dvpNumber: dvpNumber(program.code, d.code),
     code: d.code,
@@ -46,6 +47,7 @@ function toRow(program, d, r) {
     responsibility: r.responsibility || "",
     updatedBy: r.updatedBy || "",
     updatedAt: r.updatedAt || null,
+    lopCount,                       // how many LOP concerns have been raised for this DVP in this program
   };
 }
 
@@ -74,8 +76,9 @@ router.get("/:code/dvps", requireAuth(), async (req, res) => {
     const rows = await ProgramDvp.find({ program: program._id, ...isApplicable }).lean();
     const dvps = await Dvp.find({ _id: { $in: rows.map((r) => r.dvp) } }).lean();
     const byId = new Map(dvps.map((d) => [String(d._id), d]));
+    const lopCounts = new Map((await LopEntry.aggregate([{ $match: { program: program._id } }, { $group: { _id: "$dvp", n: { $sum: 1 } } }])).map((c) => [String(c._id), c.n]));
     const list = rows
-      .map((r) => { const d = byId.get(String(r.dvp)); return d ? toRow(program, d, r) : null; })
+      .map((r) => { const d = byId.get(String(r.dvp)); return d ? toRow(program, d, r, lopCounts.get(String(d._id)) || 0) : null; })
       .filter(Boolean)
       .sort((a, b) => a.zone.order - b.zone.order ||
         testNumber(a.code).localeCompare(testNumber(b.code), "en", { numeric: true }) ||
@@ -128,7 +131,7 @@ router.patch("/:code/dvps/:dvpCode", requireAuth(["ADMIN", "USER"]), async (req,
       { new: true, runValidators: true }).lean();
     if (!row) return res.status(404).json({ message: `${dvpNumber(program.code, dvpCode)} is not part of program ${program.code}.` });
 
-    res.json(toRow(program, dvp, row));
+    res.json(toRow(program, dvp, row, await LopEntry.countDocuments({ program: program._id, dvp: dvp._id })));
   } catch (err) {
     console.error("PATCH /programs/:code/dvps/:dvpCode failed:", err.message);
     res.status(500).json({ message: "Could not save changes." });

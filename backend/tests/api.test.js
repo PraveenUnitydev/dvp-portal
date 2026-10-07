@@ -293,6 +293,98 @@ async function startServer(env, port) {
   const back = (await call("GET", "/api/programs/C300/dvps", { token: maya })).body.dvps.find((d) => d.code === "UDVP-101-02");
   check("Restoring brings it back with all its status and remarks intact", r.body.active === true && back.completedStatus === "Done" && back.remarks === "before archive");
 
+  { // LOP tests live in their own scope so their helper names can't clash with the rest of this file
+  section("LOP concerns");
+  const LopEntry = require("../models/LopEntry");
+  const lopDir = path.join(UPLOADS, "lop-images");
+  const lopFiles = () => (fs.existsSync(lopDir) ? fs.readdirSync(lopDir) : []);
+  const lopUrl = (program, code) => `/api/programs/${program}/dvps/${code}/lop`;
+  const colour = (program, code, color) => call("PATCH", `/api/programs/${program}/dvps/${code}`, { token: maya, json: { color } });
+  const raise = (fields, files = [], who = maya, program = "U171", code = "UDVP-101-02") => call("POST", lopUrl(program, code), { token: who, form: formOf(fields, files) });
+  const good = { details: "Seat rail interferes with the pedal box at full recline.", casVersion: "CAS v2.4", cadVersion: "CAD model A12" };
+  const history = async (program = "U171", code = "UDVP-101-02") => (await call("GET", lopUrl(program, code), { token: maya })).body;
+
+  await colour("U171", "UDVP-101-02", "Red"); await colour("U171", "UDVP-102-01", "Green");
+  check("Without signing in: reading and raising are both 401", (await call("GET", lopUrl("U171", "UDVP-101-02"))).status === 401 && (await call("POST", lopUrl("U171", "UDVP-101-02"), { form: formOf(good) })).status === 401);
+  check("A DVP that isn't in the program, an unknown program and a malformed number are refused", (await call("GET", lopUrl("N200", "UDVP-101-02"), { token: maya })).status === 404 && (await call("GET", lopUrl("NOPE", "UDVP-101-02"), { token: maya })).status === 404 && (await call("GET", lopUrl("U171", "xx"), { token: maya })).status === 400);
+  let h = await history();
+  check("A Red DVP: LOP is enabled and the history is empty", h.enabled === true && h.color === "Red" && h.count === 0 && h.dvpNumber === "U171-UDVP-101-02");
+  h = await history("U171", "UDVP-102-01");
+  check("A Green DVP: LOP is not enabled", h.enabled === false && h.color === "Green");
+  r = await raise(good, [], maya, "U171", "UDVP-102-01");
+  check("Raising on a DVP that is not Red -> 409 that says why", r.status === 409 && /only be added while U171-UDVP-102-01 is marked Red/.test(r.body.message) && /marked Green/.test(r.body.message), r.body.message);
+
+  r = await raise({ ...good, raisedBy: JSON.stringify({ name: "Somebody Else", role: "ADMIN" }), seq: "99", username: "forged" });
+  check("A plain user can raise one; it is #1", r.status === 201 && r.body.seq === 1 && r.body.details === good.details && r.body.casVersion === "CAS v2.4" && r.body.cadVersion === "CAD model A12");
+  check("Who raised it comes from the sign-in (name, username, role), not from what was sent", r.body.raisedBy.name === "Maya User" && r.body.raisedBy.username === "maya" && r.body.raisedBy.role === "USER", JSON.stringify(r.body.raisedBy));
+  check("It carries its date and time", Boolean(r.body.createdAt) && Math.abs(Date.now() - new Date(r.body.createdAt).getTime()) < 60000);
+  const first = r.body;
+
+  section("LOP: refusing bad input");
+  const lopBefore = (await history()).count;
+  const refused = async (name, fields, files = []) => { const x = await raise(fields, files); check(name, x.status === 400, `got ${x.status}: ${x.body?.message}`); };
+  await refused("Details missing", { ...good, details: "" }); await refused("Details only spaces", { ...good, details: "   " });
+  await refused("Details over 4000 characters", { ...good, details: "x".repeat(4001) });
+  await refused("Details starting with a formula character", { ...good, details: "=HYPERLINK(1)" });
+  await refused("Details with a control character", { ...good, details: "a\u0000b" });
+  await refused("Neither CAS nor CAD version", { details: "x", casVersion: "", cadVersion: "" });
+  await refused("A version over 120 characters", { ...good, cadVersion: "v".repeat(121) });
+  await refused("A version starting with a formula character", { ...good, casVersion: "@SUM(A1)" });
+  check("Only a CAS version, or only a CAD version, is enough", (await raise({ details: "Only CAS given", casVersion: "CAS v1" })).status === 201 && (await raise({ details: "Only CAD given", cadVersion: "CAD B3" })).status === 201);
+  check("Refused entries were not saved (only the 3 good ones exist)", (await history()).count === lopBefore + 2);
+
+  section("LOP: images");
+  r = await raise({ ...good, details: "With three pictures" }, [[PNG, "a.png", "image/png"], [JPG, "b.jpg", "image/jpeg"], [WEBP, "c.webp", "image/webp"]]);
+  check("PNG + JPEG + WebP accepted", r.status === 201 && r.body.images.length === 3 && r.body.images.every((u) => /^\/api\/lop-images\/[a-f0-9]{24}-[123]\.(png|jpg|webp)$/.test(u)), JSON.stringify(r.body.images));
+  const pic = r.body.images[0];
+  check("A picture needs sign-in (401 without)", (await call("GET", pic)).status === 401);
+  const got = await call("GET", pic, { token: maya }), got2 = await call("GET", r.body.images[1], { token: admin });
+  check("Signed-in people get the exact bytes, as the right type, privately cached, nosniff", got.status === 200 && got.raw.equals(PNG) && got.headers.get("content-type") === "image/png" && got.headers.get("x-content-type-options") === "nosniff" && /private/.test(got.headers.get("cache-control")) && got2.raw.equals(JPG));
+  check("A made-up or malformed picture name is a 404", (await call("GET", "/api/lop-images/ffffffffffffffffffffffff-1.png", { token: maya })).status === 404 && (await call("GET", "/api/lop-images/x.png", { token: maya })).status === 404 && (await call("GET", "/api/lop-images/..%2f..%2fserver.js", { token: maya })).status === 404);
+  r = await raise({ ...good, details: "With the most pictures allowed" }, Array.from({ length: 4 }, (_, i) => [PNG, `m${i}.png`, "image/png"]));
+  check("Four pictures (the limit) are accepted", r.status === 201 && r.body.images.length === 4 && lopFiles().length === 7, `${r.status} files=${lopFiles().length}`);
+  const filesBefore = lopFiles().length, countBefore = (await history()).count;
+  r = await raise(good, [[Buffer.from("this is only text, long enough to pass the length check, not a picture"), "fake.png", "image/png"]]);
+  check("A text file renamed .png refused", r.status === 400 && /not a PNG, JPEG or WebP/.test(r.body.message));
+  check("An SVG refused", (await raise(good, [[Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"></svg>' + " ".repeat(40)), "x.png", "image/png"]])).status === 400);
+  r = await raise(good, [[PNG, "ok.png", "image/png"], [Buffer.from("not a picture at all, long enough to pass the length check"), "bad.png", "image/png"]]);
+  check("One good + one fake: refused, and nothing was saved", r.status === 400 && lopFiles().length === filesBefore && (await history()).count === countBefore);
+  r = await raise(good, Array.from({ length: 5 }, (_, i) => [PNG, `n${i}.png`, "image/png"]));
+  check("5 pictures refused (limit is 4)", r.status === 400 && /at most 4/.test(r.body.message));
+  r = await raise(good, [[Buffer.concat([PNG, Buffer.alloc(3 * 1024 * 1024, 7)]), "big.png", "image/png"]]);
+  check("A picture over 3 MB refused", r.status === 400 && /3 MB/.test(r.body.message) && lopFiles().length === filesBefore);
+
+  section("LOP: history is added to, never replaced");
+  h = await history();
+  check("Newest first, numbered #5 down to #1, all still there", h.entries.map((e) => e.seq).join() === "5,4,3,2,1", h.entries.map((e) => e.seq).join());
+  const firstNow = h.entries.find((e) => e.seq === 1);
+  check("The first entry is exactly as it was written, after four more were added", JSON.stringify(firstNow) === JSON.stringify(first));
+  r = await raise({ details: "Raised by the admin", cadVersion: "CAD model A13" }, [], admin);
+  check("Another person's entry is recorded under their own name", r.status === 201 && r.body.seq === 6 && r.body.raisedBy.name === "Portal Admin" && r.body.raisedBy.role === "ADMIN");
+  check("There is no way to edit or delete an entry through the API", (await call("PUT", lopUrl("U171", "UDVP-101-02") + "/" + first.id, { token: admin, json: { details: "x" } })).status === 404 && (await call("PATCH", lopUrl("U171", "UDVP-101-02") + "/" + first.id, { token: admin, json: { details: "x" } })).status === 404 && (await call("DELETE", lopUrl("U171", "UDVP-101-02") + "/" + first.id, { token: admin })).status === 404 && (await call("DELETE", lopUrl("U171", "UDVP-101-02"), { token: admin })).status === 404);
+  await LopEntry.updateOne({ _id: first.id }, { $set: { details: "TAMPERED", "raisedBy.name": "Nobody" } });
+  const afterTamper = (await history()).entries.find((e) => e.seq === 1);
+  check("Even a direct update through the data layer can't change a saved entry", afterTamper.details === good.details && afterTamper.raisedBy.name === "Maya User", JSON.stringify(afterTamper));
+  const rows = (await call("GET", "/api/programs/U171/dvps", { token: maya })).body.dvps;
+  check("The program list says how many concerns each DVP has (6 here, 0 elsewhere)", rows.find((d) => d.code === "UDVP-101-02").lopCount === 6 && rows.filter((d) => d.code !== "UDVP-101-02").every((d) => d.lopCount === 0));
+  check("Another program doesn't see them (same DVP in C300: none, not enabled)", await (async () => { const x = await history("C300", "UDVP-101-02"); return x.count === 0 && x.enabled === false; })());
+
+  section("LOP: the DVP's colour changes");
+  await colour("U171", "UDVP-101-02", "Green");
+  h = await history();
+  check("Marked Green: no new entries allowed, but all 6 stay readable", h.enabled === false && h.count === 6 && (await raise(good)).status === 409);
+  await colour("U171", "UDVP-101-02", "Red");
+  r = await raise({ details: "Raised again after being Red a second time", cadVersion: "CAD model A14" });
+  check("Red again: the history carries on (#7), nothing was lost in between", r.status === 201 && r.body.seq === 7 && (await history()).count === 7);
+
+  section("LOP: several people at the same moment");
+  await colour("U171", "UDVP-102-02", "Red");
+  const crowd = await Promise.all(Array.from({ length: 6 }, (_, i) => raise({ details: `Concurrent entry ${i}`, cadVersion: `CAD ${i}` }, [], i % 2 ? admin : maya, "U171", "UDVP-102-02")));
+  check("Six people adding together: all saved", crowd.every((x) => x.status === 201), crowd.map((x) => x.status).join(","));
+  check("...each with its own number 1 to 6, none repeated or skipped", crowd.map((x) => x.body.seq).sort((a, b) => a - b).join() === "1,2,3,4,5,6", crowd.map((x) => x.body.seq).join());
+
+  }
+
   section("Rate limiting of admin changes");
   const limited = await startServer({ ...ENV, ADMIN_WRITE_LIMIT: "3" }, PORT_LIMITED);
   const statuses = []; for (let i = 0; i < 5; i++) statuses.push((await call("POST", "/api/admin/programs", { token: admin, json: { code: `L${i}0` }, port: PORT_LIMITED })).status);
