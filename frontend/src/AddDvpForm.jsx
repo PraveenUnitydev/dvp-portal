@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createDvp } from "./api.js";
+import { createDvp, updateDvp } from "./api.js";
 import { sniffImageFile } from "./imageType.js";
 import {
   buildCode, codeExists, defaultSeries, nextFreeSeries, nextSequence, nextZoneOrder, seriesFitsZone, seriesInZone, zonesOf,
@@ -18,24 +18,35 @@ const digits = (value, max) => value.replace(/\D/g, "").slice(0, max);
 
 // Adds a DVP to the base catalog. Every rule is checked again on the server; the checks here only
 // save a round trip and say what is wrong next to the field.
-export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
+// Adds a DVP (no `dvp` prop) or edits one (`dvp` given: the code and type are locked, because every program's
+// DVP number is built from the code).
+export default function AddDvpForm({ dvps, programs, dvp, onClose, onCreated, onSaved, onStale }) {
+  const editing = Boolean(dvp);
   const zones = useMemo(() => zonesOf(dvps), [dvps]);
   const firstZone = zones[0]?.order ?? 1;
 
   const [type, setType] = useState("Usability");
   const noZones = zones.length === 0;                                  // an empty catalog starts with a new zone
-  const [zoneKey, setZoneKey] = useState(noZones ? "new" : String(firstZone)); // a zone number, or "new"
+  const [zoneKey, setZoneKey] = useState(editing ? String(dvp.zone.order) : noZones ? "new" : String(firstZone)); // a zone number, or "new"
   const [newZoneOrder, setNewZoneOrder] = useState(String(nextZoneOrder(dvps)));
   const [newZoneName, setNewZoneName] = useState("");
   const [seriesKey, setSeriesKey] = useState(() => defaultSeries(dvps, firstZone)); // an existing series, or "new"
   const [newSeries, setNewSeries] = useState(noZones ? `${nextZoneOrder(dvps)}01` : "");
   const [seqOverride, setSeqOverride] = useState(null);                // null = use the suggested number
 
-  const [f, setF] = useState({
+  const [f, setF] = useState(() => (editing ? {
+    component: dvp.component || "", evaluationParameter: dvp.evaluationParameter || "", fullName: dvp.fullName || "",
+    ergonomicsArea: dvp.ergonomicsArea || "", cas: dvp.cas || "", vrCapability: dvp.vrCapability || "No",
+    requirement: dvp.requirement || "", acceptanceCriteria: dvp.acceptanceCriteria || "", procedure: dvp.procedure || "",
+  } : {
     component: "", evaluationParameter: "", fullName: "", ergonomicsArea: "", cas: "",
     vrCapability: "No", requirement: "", acceptanceCriteria: "", procedure: "",
-  });
+  }));
   const [files, setFiles] = useState([]);
+  // images already on the DVP (edit only): each can be taken off, or kept
+  const existingImages = useMemo(() => (editing ? dvp.referenceImages.map((url) => ({ url, name: decodeURIComponent(url.split("/").pop()) })) : []), [editing, dvp]);
+  const [removed, setRemoved] = useState([]);
+  const keptCount = existingImages.length - removed.length;
   const [selected, setSelected] = useState(() => new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -86,7 +97,7 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
       // The browser's type comes from the file extension, so look at the file's real first bytes too
       if (!IMAGE_TYPES.includes(file.type) || !(await sniffImageFile(file))) problems.push(`"${file.name}" is not a PNG, JPEG or WebP image.`);
       else if (file.size > MAX_IMAGE_MB * 1024 * 1024) problems.push(`"${file.name}" is over ${MAX_IMAGE_MB} MB.`);
-      else if (accepted.length >= MAX_IMAGES) problems.push(`You can add at most ${MAX_IMAGES} images.`);
+      else if (keptCount + accepted.length >= MAX_IMAGES) problems.push(`You can add at most ${MAX_IMAGES} images.`);
       else accepted.push(file);
     }
     setFiles(accepted);
@@ -94,9 +105,12 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
   };
 
   // ── closing ─────────────────────────────────────────────────────────
-  const dirty = Object.entries(f).some(([k, v]) => (k === "vrCapability" ? v !== "No" : v.trim() !== "")) ||
-    files.length > 0 || selected.size > 0 || newZoneName.trim() !== "" || seqOverride !== null;
-  const close = () => { if (busy) return; if (!dirty || window.confirm("Discard this new DVP?")) onClose(); };
+  const dirty = editing
+    ? Object.entries(f).some(([k, v]) => v.trim() !== String(dvp[k] ?? (k === "vrCapability" ? "No" : "")).trim()) ||
+      files.length > 0 || removed.length > 0 || zoneKey !== String(dvp.zone.order) || newZoneName.trim() !== ""
+    : Object.entries(f).some(([k, v]) => (k === "vrCapability" ? v !== "No" : v.trim() !== "")) ||
+      files.length > 0 || selected.size > 0 || newZoneName.trim() !== "" || seqOverride !== null;
+  const close = () => { if (busy) return; if (!dirty || window.confirm(editing ? "Discard your changes?" : "Discard this new DVP?")) onClose(); };
 
   useEffect(() => {
     const opener = document.activeElement;
@@ -113,10 +127,10 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
   const problem = () => {
     if (!zoneOrderOk) return "Enter a zone number between 1 and 99.";
     if (isNewZone && newZoneName.trim().length < 2) return "Give the new zone a name.";
-    if (!seriesOk) return "The series must be 3 or 4 digits, for example 101.";
-    if (!seqOk) return "Enter the running number, 1 to 99.";
-    if (suggested === null && seqOverride === null) return `Series ${series} is full. Choose another series.`;
-    if (exists) return `${code} already exists. Change the running number or the series.`;
+    if (!editing && !seriesOk) return "The series must be 3 or 4 digits, for example 101.";
+    if (!editing && !seqOk) return "Enter the running number, 1 to 99.";
+    if (!editing && suggested === null && seqOverride === null) return `Series ${series} is full. Choose another series.`;
+    if (!editing && exists) return `${code} already exists. Change the running number or the series.`;
     if (!f.component.trim()) return "Enter the component.";
     if (!f.evaluationParameter.trim()) return "Enter the evaluation.";
     return "";
@@ -127,15 +141,21 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
     const issue = problem();
     if (issue) { setError(issue); return; }
     const fd = new FormData();
-    fd.append("type", type); fd.append("code", code); fd.append("zoneOrder", String(zoneOrder));
+    if (!editing) { fd.append("type", type); fd.append("code", code); }
+    fd.append("zoneOrder", String(zoneOrder));
     if (isNewZone) fd.append("zoneName", newZoneName.trim());
     Object.entries(f).forEach(([k, v]) => fd.append(k, v));
-    selected.forEach((p) => fd.append("programs", p));
+    if (editing) { fd.append("expectedUpdatedAt", dvp.updatedAt); removed.forEach((n) => fd.append("removeImages", n)); }
+    else selected.forEach((p) => fd.append("programs", p));
     files.forEach((file) => fd.append("images", file, file.name));
     setBusy(true); setError("");
     try {
-      onCreated(await createDvp(fd));
+      if (editing) onSaved(await updateDvp(dvp.code, fd));
+      else onCreated(await createDvp(fd));
     } catch (err) {
+      // Someone else saved this DVP first: refresh the list behind this form so reopening it shows their version.
+      // What was typed here stays in the form, so nothing is lost.
+      if (editing && err.status === 409 && onStale) onStale();
       setError(err.message); setBusy(false);
     }
   };
@@ -148,13 +168,38 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
       <aside className="drawer drawer-wide" role="dialog" aria-modal="true" aria-labelledby="add-dvp-title" onClick={(e) => e.stopPropagation()}>
         <div className="drawer-head">
           <div>
-            <h2 id="add-dvp-title" ref={headingRef} tabIndex={-1}>Add a DVP</h2>
-            <p>Adds it to the base catalog. Switch it on for programs below, or later under Manage program DVPs.</p>
+            <h2 id="add-dvp-title" ref={headingRef} tabIndex={-1}>{editing ? `Edit ${dvp.code}` : "Add a DVP"}</h2>
+            <p>{editing ? "Changes apply to every program that uses this DVP." : "Adds it to the base catalog. Switch it on for programs below, or later under Manage program DVPs."}</p>
           </div>
           <button type="button" className="btn" onClick={close} disabled={busy}>Close</button>
         </div>
 
         <form className="drawer-body" onSubmit={save} noValidate>
+          {editing && (
+            <fieldset className="form-section">
+              <legend>DVP code</legend>
+              <p className="code-preview"><span>Code</span> <strong>{dvp.code}</strong><small>{dvp.type}. The code and type can't be changed.</small></p>
+              <div className="form-grid">
+                <label className="field"><span>Zone</span>
+                  <select value={zoneKey} onChange={(e) => changeZone(e.target.value)}>
+                    {zones.map((z) => <option key={z.order} value={z.order}>{z.order} · {z.name}</option>)}
+                    <option value="new">New zone…</option>
+                  </select>
+                </label>
+                {isNewZone && (
+                  <>
+                    <label className="field"><span>New zone number</span>
+                      <input inputMode="numeric" value={newZoneOrder} onChange={(e) => setNewZoneOrder(digits(e.target.value, 2))} />
+                    </label>
+                    <label className="field"><span>New zone name</span>
+                      <input value={newZoneName} maxLength={40} onChange={(e) => setNewZoneName(e.target.value)} />
+                    </label>
+                  </>
+                )}
+              </div>
+            </fieldset>
+          )}
+          {!editing && (
           <fieldset className="form-section">
             <legend>DVP code</legend>
             <div className="form-grid">
@@ -206,6 +251,7 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
               <p className="hint note">Codes in zone {zoneOrder} normally start with {zoneOrder} (for example {zoneOrder}01). Check the series.</p>
             )}
           </fieldset>
+          )}
 
           <fieldset className="form-section">
             <legend>Details</legend>
@@ -247,9 +293,23 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
 
           <fieldset className="form-section">
             <legend>Reference images</legend>
+            {editing && existingImages.length > 0 && (
+              <ul className="file-list">
+                {existingImages.map((img) => {
+                  const gone = removed.includes(img.name);
+                  return (
+                    <li key={img.name} className={gone ? "removed" : ""}>
+                      <img src={img.url} alt="" />
+                      <span>{img.name}{gone && <small> · will be removed when you save</small>}</span>
+                      <button type="button" className="link-btn" onClick={() => setRemoved(gone ? removed.filter((n) => n !== img.name) : [...removed, img.name])}>{gone ? "Keep" : "Remove"}</button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             <label className="field">
-              <span>Add up to {MAX_IMAGES} images (PNG, JPEG or WebP, {MAX_IMAGE_MB} MB each)</span>
-              <input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={files.length >= MAX_IMAGES}
+              <span>{editing ? `Add images (${MAX_IMAGES - keptCount - files.length} more allowed; ` : `Add up to ${MAX_IMAGES} images (`}PNG, JPEG or WebP, {MAX_IMAGE_MB} MB each)</span>
+              <input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={keptCount + files.length >= MAX_IMAGES}
                 onChange={(e) => { const chosen = Array.from(e.target.files); e.target.value = ""; addFiles(chosen); }} />
             </label>
             {files.length > 0 && (
@@ -265,6 +325,7 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
             )}
           </fieldset>
 
+          {!editing && (
           <fieldset className="form-section">
             <legend>Switch on for programs (optional)</legend>
             {programs.length === 0 ? <p className="hint">There are no programs yet.</p> : (
@@ -275,10 +336,11 @@ export default function AddDvpForm({ dvps, programs, onClose, onCreated }) {
               </div>
             )}
           </fieldset>
+          )}
 
           {error && <p className="notice notice-error" role="alert">{error}</p>}
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Adding…" : `Add ${code || "DVP"}`}</button>
+            <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? (editing ? "Saving…" : "Adding…") : editing ? "Save changes" : `Add ${code || "DVP"}`}</button>
             <button type="button" className="btn" onClick={close} disabled={busy}>Cancel</button>
           </div>
         </form>

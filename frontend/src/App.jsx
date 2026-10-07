@@ -30,7 +30,10 @@ export default function App() {
     fetchMe().then(({ user }) => setUser(user)).catch(() => {}).finally(() => setChecking(false));
   }, []);
 
-  const loadPrograms = () => fetchPrograms().then(setPrograms).catch(() => {});
+  // If the selected program has just been archived, clear the selection instead of showing a "not found" error
+  const loadPrograms = () => fetchPrograms()
+    .then((list) => { setPrograms(list); setProgramCode((c) => (c && !list.some((p) => p.code === c) ? "" : c)); })
+    .catch(() => {});
   useEffect(() => { if (user) loadPrograms(); }, [user]);
 
   // A plain user can't open the admin view, even from a bookmarked link
@@ -83,7 +86,7 @@ export default function App() {
         {activeView === "catalog" ? (
           <CatalogView programs={programs} />
         ) : activeView === "programs" ? (
-          <ProgramsView programs={programs} onCreated={loadPrograms}
+          <ProgramsView onCreated={loadPrograms}
             onManage={(code) => { setProgramCode(code); changeView("manage"); }} />
         ) : !programCode ? (
           <p className="notice">

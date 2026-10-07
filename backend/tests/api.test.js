@@ -199,6 +199,100 @@ async function startServer(env, port) {
   check("Added programs are all still there, with their DVP switches", (await call("GET", "/api/programs", { token: maya })).body.length === progsBefore && (await call("GET", "/api/programs/S302/dvps", { token: maya })).body.dvps.length === 1);
   check("Status entered before the re-seed is kept", (await call("GET", "/api/programs/U171/dvps", { token: maya })).body.dvps.find((d) => d.code === "UDVP-101-01").remarks === "checked");
 
+  section("Editing a DVP");
+  const rowOf = async (code) => (await call("GET", "/api/admin/dvps", { token: admin })).body.dvps.find((d) => d.code === code);
+  const patchForm = (fields, files = []) => formOf(fields, files);
+  await call("POST", "/api/admin/dvps", { token: admin, json: dvp({ code: "UDVP-496-01", component: "Original comp", evaluationParameter: "Original eval", procedure: "" }) });
+  let e1 = await rowOf("UDVP-496-01");
+  check("A new DVP carries an updatedAt the edit form will send back", Boolean(e1.updatedAt) && e1.editedBy === "");
+  const edit = (code, fields, o = {}) => call("PATCH", `/api/admin/dvps/${code}`, { token: admin, json: { expectedUpdatedAt: e1.updatedAt, component: "C", evaluationParameter: "E", ...fields }, ...o });
+  check("Edit: no sign-in -> 401, plain user -> 403", (await call("PATCH", "/api/admin/dvps/UDVP-496-01", { json: {} })).status === 401 && (await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: maya, json: {} })).status === 403);
+  check("Unknown DVP -> 404; malformed code -> 400", (await edit("UDVP-496-77", {})).status === 404 && (await edit("NOPE", {})).status === 400);
+  check("Without expectedUpdatedAt -> 400 (reload and try again)", (await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: admin, json: { component: "C", evaluationParameter: "E" } })).status === 400);
+  r = await edit("UDVP-496-01", { component: "New comp", evaluationParameter: "New eval", procedure: "1. Step", vrCapability: "Yes", type: "Visibility", code: "UDVP-496-99", ergonomicsArea: "Usability", cas: "Interior" });
+  check("Valid edit saved; text, VR capability, procedure-available all updated", r.status === 200 && r.body.component === "New comp" && r.body.procedureAvailable === true && r.body.vrCapability === "Yes" && r.body.fullName === "New comp New eval");
+  check("The code and type can NOT be changed by an edit (sent values ignored)", r.body.code === "UDVP-496-01" && r.body.type === "Usability");
+  check("Who edited it, and when, is recorded", r.body.editedBy === "Portal Admin" && Boolean(r.body.editedAt));
+  const stale = await edit("UDVP-496-01", { component: "Stale save" });
+  check("A save based on an OLD copy -> 409, and nothing changes", stale.status === 409 && (await rowOf("UDVP-496-01")).component === "New comp");
+  // One round proves little for a race (the outcome can be down to timing), so repeat it: every round must have exactly one winner
+  let raceRounds = [];
+  for (let round = 0; round < 8; round++) {
+    e1 = await rowOf("UDVP-496-01");
+    const dup = await Promise.all([1, 2].map((i) => edit("UDVP-496-01", { component: `Racer ${round}-${i}` })));
+    raceRounds.push(dup.map((x) => x.status).sort().join(","));
+  }
+  check("Two admins saving the same copy at once, 8 times over: every time exactly one wins and one is told to reload", raceRounds.every((r) => r === "200,409"), raceRounds.join(" | "));
+  e1 = await rowOf("UDVP-496-01");
+  check("Missing required text refused", (await edit("UDVP-496-01", { component: "" })).status === 400 && (await edit("UDVP-496-01", { evaluationParameter: " " })).status === 400);
+  check("Formula-looking / over-long / control-character text refused", (await edit("UDVP-496-01", { component: "=cmd" })).status === 400 && (await edit("UDVP-496-01", { procedure: "@x" })).status === 400 && (await edit("UDVP-496-01", { procedure: "x".repeat(8001) })).status === 400 && (await edit("UDVP-496-01", { cas: "a\u0000" })).status === 400);
+  check("VR capability invalid refused", (await edit("UDVP-496-01", { vrCapability: "Maybe" })).status === 400);
+  check("Refused edits changed nothing", (await rowOf("UDVP-496-01")).component === e1.component);
+  r = await edit("UDVP-496-01", { zoneOrder: 5, zoneName: "ignored" });
+  check("Moving to an existing zone takes that zone's real name", r.status === 200 && r.body.zone.order === 5 && r.body.zone.name === "Roof & pillars");
+  e1 = await rowOf("UDVP-496-01");
+  check("Moving to a new zone needs a free name", (await edit("UDVP-496-01", { zoneOrder: 13 })).status === 400 && (await edit("UDVP-496-01", { zoneOrder: 13, zoneName: "seats" })).status === 400);
+  r = await edit("UDVP-496-01", { zoneOrder: 13, zoneName: "Doors" }); e1 = await rowOf("UDVP-496-01");
+  check("...a new zone with an unused name works", r.status === 200 && r.body.zone.name === "Doors");
+
+  section("Editing images");
+  r = await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: admin, form: patchForm({ expectedUpdatedAt: e1.updatedAt, component: "C", evaluationParameter: "E" }, [[PNG, "a.png", "image/png"], [JPG, "b.jpg", "image/jpeg"]]) });
+  check("Two images added: named -1 and -2", r.status === 200 && JSON.stringify(r.body.referenceImages) === JSON.stringify(["/dvp-images/UDVP-496-01-1.png", "/dvp-images/UDVP-496-01-2.jpg"]), JSON.stringify(r.body.referenceImages));
+  check("...and they are served", (await call("GET", "/dvp-images/UDVP-496-01-2.jpg")).raw.equals(JPG));
+  e1 = await rowOf("UDVP-496-01");
+  r = await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: admin, form: patchForm({ expectedUpdatedAt: e1.updatedAt, component: "C", evaluationParameter: "E", removeImages: "UDVP-496-01-1.png" }, [[WEBP, "c.webp", "image/webp"]]) });
+  check("One removed and one added in the same save; the new one never reuses a removed number", r.status === 200 && JSON.stringify(r.body.referenceImages) === JSON.stringify(["/dvp-images/UDVP-496-01-2.jpg", "/dvp-images/UDVP-496-01-3.webp"]), JSON.stringify(r.body.referenceImages));
+  check("The removed image's file is deleted from disk", !uploaded().includes("UDVP-496-01-1.png") && (await call("GET", "/dvp-images/UDVP-496-01-1.png")).status === 404);
+  e1 = await rowOf("UDVP-496-01"); const filesNow = uploaded().length;
+  r = await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: admin, form: patchForm({ expectedUpdatedAt: e1.updatedAt, component: "C", evaluationParameter: "E", removeImages: "nonexistent.png" }) });
+  check("Removing an image the DVP doesn't have is refused", r.status === 400);
+  r = await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: admin, form: patchForm({ expectedUpdatedAt: e1.updatedAt, component: "C", evaluationParameter: "E" }, Array.from({ length: 5 }, (_, i) => [PNG, `n${i}.png`, "image/png"])) });
+  check("More than 6 images in total refused, with the real total in the message", r.status === 400 && /at most 6 images \(it would have 7\)/.test(r.body.message), r.body.message);
+  r = await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: admin, form: patchForm({ expectedUpdatedAt: e1.updatedAt, component: "C", evaluationParameter: "E" }, [[PNG, "ok.png", "image/png"], [Buffer.from("not an image, long enough to get past the length check"), "bad.png", "image/png"]]) });
+  check("A good image + a fake one: refused, and the good one is NOT left on disk", r.status === 400 && uploaded().length === filesNow);
+  r = await call("PATCH", "/api/admin/dvps/UDVP-496-01", { token: admin, form: patchForm({ expectedUpdatedAt: e1.updatedAt, component: "=bad", evaluationParameter: "E" }, [[PNG, "ok.png", "image/png"]]) });
+  check("Bad text + a good image: refused, image not written", r.status === 400 && uploaded().length === filesNow);
+  r = await call("PATCH", "/api/admin/dvps/UDVP-102-02", { token: admin, form: patchForm({ expectedUpdatedAt: (await rowOf("UDVP-102-02")).updatedAt, component: "Edited steering", evaluationParameter: "Contour Comfort", removeImages: "UDVP-102-02-1.webp" }) });
+  check("A master-sheet image can be taken off a DVP...", r.status === 200 && r.body.referenceImages.length === 0 && r.body.component === "Edited steering");
+  check("...but the sheet's own image FILE is never deleted", (await call("GET", "/dvp-images/UDVP-102-02-1.webp")).status === 200);
+
+  section("A re-seed keeps portal edits but still refreshes the rest");
+  await mongoose.connection.collection("dvps").updateOne({ code: "UDVP-101-02" }, { $set: { component: "TAMPERED" } });
+  execFileSync("node", ["scripts/seed.js"], { cwd, env: ENV, stdio: "ignore" });
+  const rs102 = await rowOf("UDVP-102-02"), rs101 = await rowOf("UDVP-101-02"), rs496 = await rowOf("UDVP-496-01");
+  check("The edited sheet DVP keeps the admin's text and removed image", rs102.component === "Edited steering" && rs102.referenceImages.length === 0);
+  check("An UNEDITED sheet DVP is still refreshed from the sheet", rs101.component === "Control Pedals", rs101.component);
+  check("A DVP added in the portal is untouched", rs496.code === "UDVP-496-01" && rs496.referenceImages.length === 2);
+
+  section("Deleting a DVP");
+  await call("POST", "/api/admin/dvps", { token: admin, form: formOf(dvp({ code: "UDVP-495-01" }), [[PNG, "a.png", "image/png"]]) });
+  check("Delete: no sign-in -> 401, plain user -> 403", (await call("DELETE", "/api/admin/dvps/UDVP-495-01")).status === 401 && (await call("DELETE", "/api/admin/dvps/UDVP-495-01", { token: maya })).status === 403);
+  check("A sheet DVP used by U171 can't be deleted, and the message names the program", await (async () => { const x = await call("DELETE", "/api/admin/dvps/UDVP-101-01", { token: admin }); return x.status === 409 && /U171/.test(x.body.message); })());
+  check("...and it is still there", Boolean(await rowOf("UDVP-101-01")));
+  await call("POST", "/api/admin/dvps", { token: admin, json: dvp({ code: "UDVP-495-02", programs: ["T100"] }) });
+  await call("PUT", "/api/admin/programs/T100/applicability", { token: admin, json: { codes: [] } });
+  check("One a program switched OFF still can't be deleted (its history would be lost)", (await call("DELETE", "/api/admin/dvps/UDVP-495-02", { token: admin })).status === 409);
+  check("An unused DVP can be deleted", (await call("DELETE", "/api/admin/dvps/UDVP-495-01", { token: admin })).status === 200 && !(await rowOf("UDVP-495-01")));
+  check("...its uploaded image is removed from disk", !uploaded().some((f) => f.startsWith("UDVP-495-01")));
+  check("Deleting it again -> 404; malformed -> 400", (await call("DELETE", "/api/admin/dvps/UDVP-495-01", { token: admin })).status === 404 && (await call("DELETE", "/api/admin/dvps/xx", { token: admin })).status === 400);
+
+  section("Programs: edit and archive");
+  check("Admin program list includes everything with an active flag; a user may not read it", (await call("GET", "/api/admin/programs", { token: admin })).body.every((p) => typeof p.active === "boolean") && (await call("GET", "/api/admin/programs", { token: maya })).status === 403);
+  r = await call("PATCH", "/api/admin/programs/T100", { token: admin, json: { name: "Renamed", description: "New text" } });
+  check("Name and description can be changed; the code stays", r.status === 200 && r.body.name === "Renamed" && r.body.description === "New text" && r.body.code === "T100");
+  check("Plain user / no sign-in refused; unknown program 404", (await call("PATCH", "/api/admin/programs/T100", { token: maya, json: { name: "x" } })).status === 403 && (await call("PATCH", "/api/admin/programs/T100", { json: { name: "x" } })).status === 401 && (await call("PATCH", "/api/admin/programs/NOPE", { token: admin, json: { name: "x" } })).status === 404);
+  check("Formula name, over-long description, empty request, non-boolean active: all refused", (await call("PATCH", "/api/admin/programs/T100", { token: admin, json: { name: "=cmd" } })).status === 400 && (await call("PATCH", "/api/admin/programs/T100", { token: admin, json: { description: "x".repeat(301) } })).status === 400 && (await call("PATCH", "/api/admin/programs/T100", { token: admin, json: {} })).status === 400 && (await call("PATCH", "/api/admin/programs/T100", { token: admin, json: { active: "no" } })).status === 400);
+  check("An empty name falls back to the code", (await call("PATCH", "/api/admin/programs/T100", { token: admin, json: { name: "" } })).body.name === "T100");
+  await call("PATCH", "/api/programs/C300/dvps/UDVP-101-02", { token: admin, json: { completedStatus: "Done", remarks: "before archive" } });
+  r = await call("PATCH", "/api/admin/programs/C300", { token: admin, json: { active: false } });
+  check("Archiving works and its DVP count is kept", r.status === 200 && r.body.active === false && r.body.dvpCount === 135);
+  check("An archived program disappears from the lists everyone uses", !(await call("GET", "/api/programs", { token: maya })).body.some((p) => p.code === "C300") && (await call("GET", "/api/programs/C300/dvps", { token: maya })).status === 404);
+  check("...but the admin list still shows it, marked archived", (await call("GET", "/api/admin/programs", { token: admin })).body.find((p) => p.code === "C300")?.active === false);
+  check("Its code can't be reused while archived", (await call("POST", "/api/admin/programs", { token: admin, json: { code: "C300" } })).status === 409);
+  r = await call("PATCH", "/api/admin/programs/C300", { token: admin, json: { active: true } });
+  const back = (await call("GET", "/api/programs/C300/dvps", { token: maya })).body.dvps.find((d) => d.code === "UDVP-101-02");
+  check("Restoring brings it back with all its status and remarks intact", r.body.active === true && back.completedStatus === "Done" && back.remarks === "before archive");
+
   section("Rate limiting of admin changes");
   const limited = await startServer({ ...ENV, ADMIN_WRITE_LIMIT: "3" }, PORT_LIMITED);
   const statuses = []; for (let i = 0; i < 5; i++) statuses.push((await call("POST", "/api/admin/programs", { token: admin, json: { code: `L${i}0` }, port: PORT_LIMITED })).status);

@@ -252,3 +252,8 @@ thead th.col-num { z-index: 3; }
 @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr; } }
 .form-grid { align-items: start; }
 .catalog-table th:last-child, .catalog-table td:last-child { white-space: nowrap; }
+.file-list li.removed img, .file-list li.removed > span { opacity: 0.45; text-decoration: line-through; }
+.archived-row td { color: var(--ink-soft); }
+.archived-row strong { font-weight: 500; }
+.row-edit input { width: 100%; min-height: 34px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--sheet); }
+.cell-actions { white-space: nowrap; display: flex; gap: 14px; }

@@ -24,7 +24,11 @@ async function send(method, path, { json, form } = {}) {
     setToken(null);
     onSessionEnded(data.message || "Your session has ended. Sign in again.");
   }
-  if (!res.ok) throw new Error(data.message || `Request failed (${res.status}).`);
+  if (!res.ok) {
+    const error = new Error(data.message || `Request failed (${res.status}).`);
+    error.status = res.status;       // lets a screen react to a conflict (409) differently from other errors
+    throw error;
+  }
   return data;
 }
 const request = (method, path, body) => send(method, path, { json: body });
@@ -43,3 +47,7 @@ export const saveApplicability = (code, codes) =>
 export const fetchCatalogDvps = () => request("GET", "/admin/dvps");
 export const createDvp = (formData) => send("POST", "/admin/dvps", { form: formData });
 export const createProgram = (fields) => request("POST", "/admin/programs", fields);
+export const updateDvp = (code, formData) => send("PATCH", `/admin/dvps/${encodeURIComponent(code)}`, { form: formData });
+export const deleteDvp = (code) => request("DELETE", `/admin/dvps/${encodeURIComponent(code)}`);
+export const fetchAdminPrograms = () => request("GET", "/admin/programs");
+export const updateProgram = (code, fields) => request("PATCH", `/admin/programs/${encodeURIComponent(code)}`, fields);

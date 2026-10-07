@@ -25,6 +25,10 @@ const dvpSchema = new mongoose.Schema({
   referenceImages:     { type: [String], default: [] },
   // Who added it in the portal (empty for DVPs that came from the master sheet)
   createdBy:           { type: String, default: "" },
+  // Set when an admin edits the DVP in the portal. A re-import of the master sheet then leaves it alone,
+  // so portal edits are never silently reverted.
+  editedBy:            { type: String, default: "" },
+  editedAt:            { type: Date, default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Dvp", dvpSchema);

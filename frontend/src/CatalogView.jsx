@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchCatalogDvps } from "./api.js";
+import { deleteDvp, fetchCatalogDvps } from "./api.js";
 import { Clamp, ImageViewer, Thumbnails, useZones } from "./shared.jsx";
 import AddDvpForm from "./AddDvpForm.jsx";
 
@@ -13,9 +13,11 @@ export default function CatalogView({ programs }) {
   const [type, setType] = useState("All");
   const [vr, setVr] = useState("All");
   const [query, setQuery] = useState("");
-  const [detail, setDetail] = useState(null);   // a catalog code
+  const [detail, setDetail] = useState(null);   // a catalog code (the open detail drawer)
   const [viewer, setViewer] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(null);   // a catalog code
+  const [detailError, setDetailError] = useState("");
   const [flash, setFlash] = useState("");
 
   const load = () => fetchCatalogDvps()
@@ -36,6 +38,13 @@ export default function CatalogView({ programs }) {
     setFlash(`Added ${row.code}${row.programCount ? ` and switched it on for ${row.programCount} program${row.programCount === 1 ? "" : "s"}` : ""}.`);
     setDetail(null);
     load();
+  };
+
+  const saved = (row) => { setEditing(null); setDetail(null); setFlash(`Saved ${row.code}.`); load(); };
+  const remove = async (d) => {
+    if (!window.confirm(`Delete ${d.code}? This can't be undone.`)) return;
+    try { await deleteDvp(d.code); setDetail(null); setFlash(`Deleted ${d.code}.`); load(); }
+    catch (err) { setDetailError(err.message); }
   };
 
   if (status === "loading") return <p className="notice" role="status">Loading the DVP catalog…</p>;
@@ -87,7 +96,7 @@ export default function CatalogView({ programs }) {
               {visible.map((d) => (
                 <tr key={d.code} className="row">
                   <td className="col-num">
-                    <button type="button" className="row-toggle" onClick={() => setDetail(d.code)} title="Open details">{d.code}</button>
+                    <button type="button" className="row-toggle" onClick={() => { setDetailError(""); setDetail(d.code); }} title="Open details">{d.code}</button>
                   </td>
                   <td>{d.type}</td>
                   <td>{d.component || <span className="muted">—</span>}</td>
@@ -105,14 +114,20 @@ export default function CatalogView({ programs }) {
         </div>
       )}
 
-      {detailDvp && <CatalogDetail dvp={detailDvp} onClose={() => setDetail(null)} onOpenImage={(i) => setViewer({ dvp: detailDvp, index: i })} imageOpen={Boolean(viewer)} />}
+      {detailDvp && !editing && (
+        <CatalogDetail dvp={detailDvp} onClose={() => setDetail(null)} onOpenImage={(i) => setViewer({ dvp: detailDvp, index: i })}
+          imageOpen={Boolean(viewer)} onEdit={() => { setFlash(""); setEditing(detailDvp.code); }} onDelete={() => remove(detailDvp)} error={detailError} />
+      )}
+      {editing && dvps.find((d) => d.code === editing) && (
+        <AddDvpForm dvps={dvps} programs={programs} dvp={dvps.find((d) => d.code === editing)} onClose={() => setEditing(null)} onSaved={saved} onStale={load} />
+      )}
       {adding && <AddDvpForm dvps={dvps} programs={programs} onClose={() => setAdding(false)} onCreated={created} />}
       {viewer && <ImageViewer {...viewer} onClose={() => setViewer(null)} />}
     </>
   );
 }
 
-function CatalogDetail({ dvp, onClose, onOpenImage, imageOpen }) {
+function CatalogDetail({ dvp, onClose, onOpenImage, imageOpen, onEdit, onDelete, error }) {
   const headingRef = useRef(null);
   useEffect(() => {
     const opener = document.activeElement;
@@ -127,6 +142,7 @@ function CatalogDetail({ dvp, onClose, onOpenImage, imageOpen }) {
   const added = dvp.createdBy
     ? `Added by ${dvp.createdBy}${dvp.createdAt ? ` on ${new Date(dvp.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}` : ""}.`
     : "From the master sheet.";
+  const edited = dvp.editedBy ? ` Edited by ${dvp.editedBy}${dvp.editedAt ? ` on ${new Date(dvp.editedAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}` : ""}.` : "";
 
   return (
     <div className="drawer-backdrop" onClick={onClose}>
@@ -139,6 +155,13 @@ function CatalogDetail({ dvp, onClose, onOpenImage, imageOpen }) {
           <button type="button" className="btn" onClick={onClose}>Close</button>
         </div>
         <div className="drawer-body">
+          <div className="form-actions">
+            <button type="button" className="btn btn-primary" onClick={onEdit}>Edit</button>
+            <button type="button" className="btn" onClick={onDelete} disabled={dvp.programCount > 0}
+              title={dvp.programCount > 0 ? "Programs use this DVP. Switch it off there instead." : "Delete this DVP"}>Delete</button>
+            {dvp.programCount > 0 && <small className="hint">Used by {dvp.programCount} program{dvp.programCount === 1 ? "" : "s"}, so it can't be deleted. Switch it off there instead.</small>}
+          </div>
+          {error && <p className="notice notice-error" role="alert">{error}</p>}
           <dl className="details">
             <dt>Type</dt><dd>{dvp.type}</dd>
             <dt>Full name</dt><dd>{dvp.fullName || "—"}</dd>
@@ -162,7 +185,7 @@ function CatalogDetail({ dvp, onClose, onOpenImage, imageOpen }) {
               )}
             </dd>
             <dt>Used in</dt><dd>{dvp.programCount === 0 ? "No program yet. Switch it on under Manage program DVPs." : `${dvp.programCount} program${dvp.programCount === 1 ? "" : "s"}`}</dd>
-            <dt>Origin</dt><dd>{added}</dd>
+            <dt>Origin</dt><dd>{added}{edited}</dd>
           </dl>
         </div>
       </aside>

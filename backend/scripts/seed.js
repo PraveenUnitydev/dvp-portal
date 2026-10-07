@@ -3,7 +3,8 @@
  *   npm run seed
  *
  * Safe to re-run at any time:
- * - Catalog DVP definitions (criteria, procedure, images...) are refreshed from the sheet.
+ * - Catalog DVP definitions (criteria, procedure, images...) are refreshed from the sheet,
+ *   EXCEPT DVPs an admin has edited in the portal: those are left exactly as the admin saved them.
  * - Program assignments are only CREATED from the sheet. Existing rows are never
  *   touched, so status, colour, remarks and admin on/off choices made in the
  *   portal are preserved.
@@ -26,11 +27,16 @@ const RESULT_TO_COLOR = { Green: "Green", Red: "Red" };
   console.log(`Seeding from ${data.source}`);
 
   const idByCode = {};
+  const edited = new Set((await Dvp.find({ editedAt: { $ne: null } }).select("code").lean()).map((d) => d.code));
   for (const d of data.catalog) {
+    if (edited.has(d.code)) {
+      idByCode[d.code] = (await Dvp.findOne({ code: d.code }).select("_id").lean())._id;
+      continue;
+    }
     const doc = await Dvp.findOneAndUpdate({ code: d.code }, d, { upsert: true, new: true, runValidators: true });
     idByCode[d.code] = doc._id;
   }
-  console.log(`Catalog: ${data.catalog.length} DVPs`);
+  console.log(`Catalog: ${data.catalog.length} DVPs` + (edited.size ? ` (${edited.size} edited in the portal were left as they are)` : ""));
 
   const programIds = {};
   for (const code of [...new Set([...data.programs, ...SAMPLE_PROGRAMS])]) {

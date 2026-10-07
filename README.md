@@ -26,10 +26,16 @@ Admins also have three more screens:
   (`UDVP-101-01`, no program in front). Search and filter it, open a DVP's full details,
   and **Add DVP**: the form builds a valid code for you (type, zone, series and the next
   free running number), takes the details, up to 6 reference images, and can switch the
-  new DVP on for chosen programs straight away. A DVP's code can't be changed afterwards.
+  new DVP on for chosen programs straight away. A DVP's code and type can't be changed afterwards.
+  **Edit** changes a DVP's details and swaps its images (the change shows in every program that uses it).
+  **Delete** is only possible for a DVP no program has ever used; one that programs have used (even switched off)
+  can't be deleted, because that would erase their status and remarks. If two admins edit the same DVP, the second
+  save is refused with a message and the screen refreshes, so nobody's work is silently overwritten.
 - **Programs**: the list of vehicle programs, and **Add program** (code, name, description,
   and optionally start with another program's set of DVPs; status, colour and remarks are
-  never copied, a new program starts fresh).
+  never copied, a new program starts fresh), rename a program, and **archive** one (hides it everywhere but
+  keeps all its data; **Restore** brings it back exactly as it was). A program's code can't change, because it
+  is part of every DVP number.
 - **Manage program DVPs**: as before.
 
 DVP numbers are shown per program as `<program>-<catalog code>`,
@@ -78,6 +84,10 @@ scripts/import_dvp_sheet.py   sheet → seed JSON converter
 | GET | `/api/admin/dvps` | ADMIN - the whole base catalog, with how many programs use each DVP |
 | POST | `/api/admin/dvps` | ADMIN - add a DVP. Multipart form (fields below + up to 6 `images`) or JSON without images |
 | POST | `/api/admin/programs` `{code, name?, description?, copyFrom?}` | ADMIN - add a program |
+| PATCH | `/api/admin/dvps/:code` | ADMIN - edit a DVP. Same fields as adding (no code/type) + `expectedUpdatedAt` (as loaded; a changed DVP gives 409), `removeImages` (names), new `images` |
+| DELETE | `/api/admin/dvps/:code` | ADMIN - delete a DVP no program has used (409 otherwise) |
+| GET | `/api/admin/programs` | ADMIN - every program, archived ones included |
+| PATCH | `/api/admin/programs/:code` `{name?, description?, active?}` | ADMIN - rename, or archive / restore (`active`) |
 
 `POST /api/admin/dvps` fields: `type` (Usability or Visibility), `code` (`UDVP-101-08`; the letter must match the type),
 `zoneOrder` (+ `zoneName` when it is a new zone), `component`, `evaluationParameter`, `fullName?`, `ergonomicsArea?`, `cas?`,
@@ -118,8 +128,9 @@ cd frontend && npm run test:unit   # code-building and image-type logic
 ```
 
 `test:api` seeds the real 135-DVP catalog, starts the server, and checks permissions, the number format, adding
-programs and DVPs (every refusal rule, zones, images, two admins racing for one code), that re-seeding never removes
-what admins added, and rate limiting.
+programs and DVPs (every refusal rule, zones, images, two admins racing for one code), editing (including two admins
+editing the same DVP, repeated 8 times because a race can pass by luck once), deleting, archiving programs, that
+re-seeding keeps portal edits but still refreshes unedited DVPs, and rate limiting.
 
 ## Production build
 
@@ -144,6 +155,8 @@ cd backend && npm run seed
 
 Re-seeding refreshes the catalog definitions (criteria, procedure, images) but
 never overwrites status, colour, remarks or admin on/off choices made in the portal.
+A DVP an admin has **edited in the portal** is also left alone by a re-seed (the seed prints how many it kept),
+so edits are never silently reverted by re-importing the sheet. DVPs nobody edited are still refreshed.
 
 The converter also extracts the reference images. They are Excel "place in cell"
 pictures (they show as `#VALUE!` outside Excel), so it follows the workbook's rich-data

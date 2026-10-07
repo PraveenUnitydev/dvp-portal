@@ -127,6 +127,8 @@ function catalogRow(d, programCount) {
     referenceImages: (d.referenceImages || []).map(imageUrl),
     programCount: programCount || 0,
     createdBy: d.createdBy || "", createdAt: d.createdAt || null,
+    editedBy: d.editedBy || "", editedAt: d.editedAt || null,
+    updatedAt: d.updatedAt || null,      // the edit form sends this back so two admins can't overwrite each other
   };
 }
 
@@ -297,6 +299,189 @@ router.post("/programs", writeLimiter, async (req, res) => {
   } catch (err) {
     console.error("POST /admin/programs failed:", err.message);
     res.status(500).json({ message: "Could not add the program." });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Correcting things: edit / delete a DVP, edit / archive a program
+// ─────────────────────────────────────────────────────────────────────────────
+
+function nextImageNumber(names) {
+  let max = 0;
+  for (const n of names) { const m = /-(\d+)\.[a-z]+$/i.exec(n); if (m) max = Math.max(max, Number(m[1])); }
+  return max + 1;
+}
+
+const sameInstant = (a, b) => new Date(a).getTime() === new Date(b).getTime();
+
+// Edits to the same DVP run one after another inside this server, so "check it is unchanged, then save" can't
+// interleave with another save. The write also matches on updatedAt, which keeps it safe if the portal is ever
+// run as more than one process. (Found while testing: an emulated MongoDB doesn't make concurrent
+// conditional updates atomic, so the in-server lock is what makes the behaviour certain.)
+const editChains = new Map();
+function withLock(key, fn) {
+  const run = (editChains.get(key) || Promise.resolve()).then(fn, fn);
+  const tail = run.catch(() => {});
+  editChains.set(key, tail);
+  tail.then(() => { if (editChains.get(key) === tail) editChains.delete(key); });
+  return run;
+}
+
+// PATCH /api/admin/dvps/:code - change a DVP's details and images. The code and type can't change
+// (the code is what every program's DVP number is built from). Send `expectedUpdatedAt` exactly as the
+// DVP was loaded: if someone saved it in the meantime the change is refused instead of overwriting theirs.
+async function patchDvp(req, res) {
+  const written = [];
+  try {
+    const body = req.body || {};
+    const fail = (message, status = 400) => res.status(status).json({ message });
+    const code = String(req.params.code || "").toUpperCase();
+    if (!DVP_CODE.test(code)) return fail("Invalid DVP code.");
+    const dvp = await Dvp.findOne({ code }).lean();
+    if (!dvp) return fail(`${code} was not found.`, 404);
+
+    if (!body.expectedUpdatedAt || Number.isNaN(new Date(body.expectedUpdatedAt).getTime())) {
+      return fail("Reload this DVP and try again.");
+    }
+    if (!sameInstant(body.expectedUpdatedAt, dvp.updatedAt)) {
+      return fail("Someone else changed this DVP after you opened it. Close it and open it again to see their changes.", 409);
+    }
+
+    const text = cleanFields(body, DVP_TEXT_RULES);
+    if (text.error) return fail(text.error);
+    const v = text.values;
+    const vrCapability = body.vrCapability === undefined || body.vrCapability === "" ? dvp.vrCapability : String(body.vrCapability);
+    if (!VR_VALUES.includes(vrCapability)) return fail("VR capability must be Yes, No or Partial.");
+
+    let zone = dvp.zone;
+    if (body.zoneOrder !== undefined && body.zoneOrder !== "") {
+      const z = await resolveZone(body);
+      if (z.error) return fail(z.error);
+      zone = z.zone;
+    }
+
+    // images: some existing ones taken off, some new ones added, six at most in the end
+    const remove = [...new Set([].concat(body.removeImages ?? []).map(String))];
+    if (remove.some((n) => !dvp.referenceImages.includes(n))) return fail("One of the images to remove is not on this DVP.");
+    const files = req.files || [];
+    const kept = dvp.referenceImages.filter((n) => !remove.includes(n));
+    if (kept.length + files.length > MAX_IMAGES) return fail(`A DVP can have at most ${MAX_IMAGES} images (it would have ${kept.length + files.length}).`);
+    const kinds = [];
+    for (const f of files) {
+      const kind = sniffImage(f.buffer);
+      if (!kind) return fail(`"${safeName(f.originalname)}" is not a PNG, JPEG or WebP image.`);
+      kinds.push(kind);
+    }
+    const first = nextImageNumber(dvp.referenceImages);
+    const added = files.map((f, i) => `${code}-${first + i}.${kinds[i].ext}`);
+
+    const changes = {
+      zone, vrCapability, referenceImages: [...kept, ...added],
+      component: v.component, evaluationParameter: v.evaluationParameter,
+      fullName: v.fullName || `${v.component} ${v.evaluationParameter}`,
+      ergonomicsArea: v.ergonomicsArea, cas: v.cas,
+      requirement: v.requirement, acceptanceCriteria: v.acceptanceCriteria,
+      procedure: v.procedure, procedureAvailable: v.procedure.length > 0,
+      editedBy: req.user.name, editedAt: new Date(),
+    };
+    // The match on updatedAt makes "nobody else saved meanwhile" part of the write itself
+    const updated = await Dvp.findOneAndUpdate({ _id: dvp._id, updatedAt: dvp.updatedAt }, { $set: changes }, { new: true, runValidators: true }).lean();
+    if (!updated) return fail("Someone else changed this DVP after you opened it. Close it and open it again to see their changes.", 409);
+
+    try {
+      if (files.length) {
+        fs.mkdirSync(UPLOAD_IMAGE_DIR, { recursive: true });
+        files.forEach((f, i) => { fs.writeFileSync(path.join(UPLOAD_IMAGE_DIR, added[i]), f.buffer); written.push(added[i]); });
+      }
+    } catch (err) {
+      written.forEach(removeUpload);
+      const { _id, __v, createdAt, updatedAt, ...before } = dvp;
+      await Dvp.updateOne({ _id: dvp._id }, { $set: before }).catch(() => {});
+      throw err;
+    }
+    remove.forEach(removeUpload);     // only touches the uploads folder; sheet images are never deleted
+    const programCount = await ProgramDvp.countDocuments({ dvp: dvp._id, ...isApplicable });
+    console.log(`DVP edited: ${code} by ${req.user.name}`);
+    res.json(catalogRow(updated, programCount));
+  } catch (err) {
+    console.error("PATCH /admin/dvps/:code failed:", err.message);
+    res.status(500).json({ message: "Could not save the DVP." });
+  }
+}
+router.patch("/dvps/:code", writeLimiter, receiveForm,
+  (req, res) => withLock(String(req.params.code || "").toUpperCase(), () => patchDvp(req, res)));
+
+// DELETE /api/admin/dvps/:code - only for a DVP no program has ever used. One that programs have used
+// can't be deleted (that would erase their status and remarks): switch it off in those programs instead.
+router.delete("/dvps/:code", writeLimiter, async (req, res) => {
+  try {
+    const code = String(req.params.code || "").toUpperCase();
+    if (!DVP_CODE.test(code)) return res.status(400).json({ message: "Invalid DVP code." });
+    const dvp = await Dvp.findOne({ code }).lean();
+    if (!dvp) return res.status(404).json({ message: `${code} was not found.` });
+    const rows = await ProgramDvp.find({ dvp: dvp._id }).select("program").lean();
+    if (rows.length) {
+      const names = (await Program.find({ _id: { $in: rows.map((r) => r.program) } }).select("code").lean()).map((p) => p.code).sort();
+      return res.status(409).json({ message: `${code} can't be deleted: ${names.join(", ")} ${names.length === 1 ? "has" : "have"} used it. Switch it off in ${names.length === 1 ? "that program" : "those programs"} instead.` });
+    }
+    await Dvp.deleteOne({ _id: dvp._id });
+    (dvp.referenceImages || []).forEach(removeUpload);
+    console.log(`DVP deleted: ${code} by ${req.user.name}`);
+    res.json({ deleted: code });
+  } catch (err) {
+    console.error("DELETE /admin/dvps/:code failed:", err.message);
+    res.status(500).json({ message: "Could not delete the DVP." });
+  }
+});
+
+async function programRow(p) {
+  return {
+    code: p.code, name: p.name, description: p.description || "", active: p.active !== false, createdBy: p.createdBy || "",
+    dvpCount: await ProgramDvp.countDocuments({ program: p._id, ...isApplicable }),
+    doneCount: await ProgramDvp.countDocuments({ program: p._id, ...isApplicable, completedStatus: "Done" }),
+  };
+}
+
+// GET /api/admin/programs - every program, archived ones included
+router.get("/programs", async (req, res) => {
+  try {
+    const programs = await Program.find().sort({ code: 1 }).lean();
+    res.json(await Promise.all(programs.map(programRow)));
+  } catch (err) {
+    console.error("GET /admin/programs failed:", err.message);
+    res.status(500).json({ message: "Could not load programs." });
+  }
+});
+
+// PATCH /api/admin/programs/:code  { name?, description?, active? }
+// The code can't change (it is part of every DVP number). Archiving hides a program everywhere but keeps all its
+// data, and it can be restored.
+router.patch("/programs/:code", writeLimiter, async (req, res) => {
+  try {
+    const code = String(req.params.code || "").toUpperCase();
+    if (!PROGRAM_CODE.test(code)) return res.status(400).json({ message: "Invalid program code." });
+    const program = await Program.findOne({ code }).lean();
+    if (!program) return res.status(404).json({ message: `Program ${code} was not found.` });
+    const body = req.body || {};
+    const set = {};
+    if ("name" in body || "description" in body) {
+      const t = cleanFields({ name: body.name ?? program.name, description: body.description ?? program.description }, {
+        name: { label: "Program name", max: 60 }, description: { label: "Description", max: 300 },
+      });
+      if (t.error) return res.status(400).json({ message: t.error });
+      set.name = t.values.name || code; set.description = t.values.description;
+    }
+    if ("active" in body) {
+      if (typeof body.active !== "boolean") return res.status(400).json({ message: "Active must be true or false." });
+      set.active = body.active;
+    }
+    if (!Object.keys(set).length) return res.status(400).json({ message: "Nothing to change." });
+    const updated = await Program.findOneAndUpdate({ _id: program._id }, { $set: set }, { new: true }).lean();
+    console.log(`Program updated: ${code} by ${req.user.name} (${Object.keys(set).join(", ")})`);
+    res.json(await programRow(updated));
+  } catch (err) {
+    console.error("PATCH /admin/programs/:code failed:", err.message);
+    res.status(500).json({ message: "Could not save the program." });
   }
 });
 
