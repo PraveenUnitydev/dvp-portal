@@ -20,8 +20,20 @@ set, or copy another program's selection as a starting point, then save.
 Switching a DVP off hides it from that program but keeps its status, colour and
 remarks, which return if it's switched back on.
 
-DVP numbers are shown per program as `VRC-<program>-<catalog code>`,
-e.g. `VRC-S302-UDVP-101-01`.
+Admins also have three more screens:
+
+- **DVP catalog**: the base reference list, every DVP once, by its plain catalog code
+  (`UDVP-101-01`, no program in front). Search and filter it, open a DVP's full details,
+  and **Add DVP**: the form builds a valid code for you (type, zone, series and the next
+  free running number), takes the details, up to 6 reference images, and can switch the
+  new DVP on for chosen programs straight away. A DVP's code can't be changed afterwards.
+- **Programs**: the list of vehicle programs, and **Add program** (code, name, description,
+  and optionally start with another program's set of DVPs; status, colour and remarks are
+  never copied, a new program starts fresh).
+- **Manage program DVPs**: as before.
+
+DVP numbers are shown per program as `<program>-<catalog code>`,
+e.g. `S302-UDVP-101-01`. In the admin catalog they are shown by catalog code only.
 
 Sample programs: U171 (the assessed base program, all 135 DVPs from the master
 sheet), S302 and D101 (empty until an admin assigns DVPs).
@@ -37,6 +49,8 @@ backend/
   middleware/    auth.js - sign-in check and role check
   seed/          dvp-catalog.json  (generated from the sheet)
   public/dvp-images/  reference images (generated from the sheet, served at /dvp-images)
+  uploads/dvp-images/ images added through the portal (git-ignored; set UPLOAD_DIR to keep them elsewhere)
+  tests/api.test.js   end-to-end API test (npm run test:api)
   scripts/seed.js
 frontend/        Vite + React UI
 scripts/import_dvp_sheet.py   sheet → seed JSON converter
@@ -46,7 +60,7 @@ scripts/import_dvp_sheet.py   sheet → seed JSON converter
 
 | Collection | What it holds |
 |---|---|
-| `dvps` | The program-independent catalog. Codes are stored without the program prefix (`UDVP-101-01`). |
+| `dvps` | The program-independent catalog. Codes are stored without the program prefix (`UDVP-101-01`). `createdBy` is set for DVPs added in the portal. |
 | `programs` | Vehicle programs (`U171`, …). |
 | `programdvps` | One row per (program, DVP) an admin has switched on, with `applicable`, and that program's status, colour, remarks and who last updated it. |
 | `users` | Portal accounts: username, name, role (`ADMIN` / `USER`), password hash. |
@@ -61,6 +75,19 @@ scripts/import_dvp_sheet.py   sheet → seed JSON converter
 | PATCH | `/api/programs/:code/dvps/:dvpCode` `{completedStatus, color, remarks}` | ADMIN, USER |
 | GET | `/api/admin/programs/:code/catalog` | ADMIN |
 | PUT | `/api/admin/programs/:code/applicability` `{codes: [...]}` | ADMIN |
+| GET | `/api/admin/dvps` | ADMIN - the whole base catalog, with how many programs use each DVP |
+| POST | `/api/admin/dvps` | ADMIN - add a DVP. Multipart form (fields below + up to 6 `images`) or JSON without images |
+| POST | `/api/admin/programs` `{code, name?, description?, copyFrom?}` | ADMIN - add a program |
+
+`POST /api/admin/dvps` fields: `type` (Usability or Visibility), `code` (`UDVP-101-08`; the letter must match the type),
+`zoneOrder` (+ `zoneName` when it is a new zone), `component`, `evaluationParameter`, `fullName?`, `ergonomicsArea?`, `cas?`,
+`requirement?`, `acceptanceCriteria?`, `procedure?`, `vrCapability?` (Yes / No / Partial), `programs?` (codes to switch it on for).
+
+Rules the server enforces on everything an admin types: text can't start with `=`, `+`, `-` or `@` (spreadsheets read
+those as formulas), no control characters, length limits, and codes must be unique. Images are accepted only if their
+first bytes say PNG, JPEG or WebP (never judged by file name; no SVG), at most 6 per DVP and 3 MB each. Adding a DVP
+inserts it first and writes the image files only after that succeeded, so two admins adding the same code at the same
+moment can't overwrite each other's images. Admin changes are rate limited.
 
 ## Local setup
 
@@ -83,6 +110,17 @@ npm install
 npm run dev                   # http://localhost:5173
 ```
 
+## Tests
+
+```bash
+cd backend  && npm run test:api    # needs MongoDB; uses a throwaway database (dvpPortalTest) and never touches real data
+cd frontend && npm run test:unit   # code-building and image-type logic
+```
+
+`test:api` seeds the real 135-DVP catalog, starts the server, and checks permissions, the number format, adding
+programs and DVPs (every refusal rule, zones, images, two admins racing for one code), that re-seeding never removes
+what admins added, and rate limiting.
+
 ## Production build
 
 ```bash
@@ -92,6 +130,9 @@ cd ../backend && pm2 start server.js --name dvp-portal
 ```
 
 The backend serves the built UI and sends `Cache-Control: no-store` for `index.html`.
+
+Images admins upload are stored under `backend/uploads/` (or `UPLOAD_DIR`), outside git, so `git pull` never touches
+them. Back that folder up with the database.
 
 ## Updating DVPs from the master sheet
 

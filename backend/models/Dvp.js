@@ -20,8 +20,11 @@ const dvpSchema = new mongoose.Schema({
   procedure:           { type: String, default: "" },
   procedureAvailable:  { type: Boolean, default: false },
   vrCapability:        { type: String, enum: ["Yes", "No", "Partial"], default: "No" },
-  // File names under public/dvp-images, in the sheet's column order
+  // File names, in the sheet's column order. Sheet images live in public/dvp-images;
+  // images uploaded through the portal live in the uploads folder. Both are served at /dvp-images.
   referenceImages:     { type: [String], default: [] },
+  // Who added it in the portal (empty for DVPs that came from the master sheet)
+  createdBy:           { type: String, default: "" },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Dvp", dvpSchema);

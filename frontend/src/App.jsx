@@ -3,6 +3,10 @@ import { fetchMe, fetchPrograms, getToken, setToken, setSessionEndedHandler } fr
 import Login from "./Login.jsx";
 import DvpsView from "./DvpsView.jsx";
 import AdminView from "./AdminView.jsx";
+import CatalogView from "./CatalogView.jsx";
+import ProgramsView from "./ProgramsView.jsx";
+
+const ADMIN_VIEWS = ["manage", "catalog", "programs"];
 
 function readParam(name) { return new URLSearchParams(window.location.search).get(name) || ""; }
 function writeParams(params) {
@@ -17,7 +21,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [programs, setPrograms] = useState([]);
   const [programCode, setProgramCode] = useState(() => readParam("program"));
-  const [view, setView] = useState(() => (readParam("view") === "manage" ? "manage" : "dvps"));
+  const [view, setView] = useState(() => (ADMIN_VIEWS.includes(readParam("view")) ? readParam("view") : "dvps"));
   const unsavedRef = useRef(false); // set by the admin view while it has unsaved changes
 
   useEffect(() => {
@@ -30,8 +34,9 @@ export default function App() {
   useEffect(() => { if (user) loadPrograms(); }, [user]);
 
   // A plain user can't open the admin view, even from a bookmarked link
-  const activeView = view === "manage" && user?.role === "ADMIN" ? "manage" : "dvps";
-  useEffect(() => { if (user) writeParams({ program: programCode, view: activeView === "manage" ? "manage" : "" }); }, [user, programCode, activeView]);
+  const activeView = ADMIN_VIEWS.includes(view) && user?.role === "ADMIN" ? view : "dvps";
+  const usesProgram = activeView === "dvps" || activeView === "manage";   // the catalog and programs screens don't depend on one
+  useEffect(() => { if (user) writeParams({ program: usesProgram ? programCode : "", view: activeView === "dvps" ? "" : activeView }); }, [user, programCode, activeView, usesProgram]);
 
   const confirmLeave = () => !unsavedRef.current || window.confirm("You have unsaved DVP selection changes. Leave without saving?");
   const changeProgram = (code) => { if (confirmLeave()) setProgramCode(code); };
@@ -53,13 +58,15 @@ export default function App() {
             <span>{user.name} <span className="role">({user.role === "ADMIN" ? "Admin" : "User"})</span></span>
             <button type="button" className="link-btn" onClick={signOut}>Sign out</button>
           </div>
-          <label className="program-picker">
-            <span>Program</span>
-            <select value={programCode} onChange={(e) => changeProgram(e.target.value)}>
-              <option value="">Select a program</option>
-              {programs.map((p) => <option key={p.code} value={p.code}>{p.code}</option>)}
-            </select>
-          </label>
+          {usesProgram && (
+            <label className="program-picker">
+              <span>Program</span>
+              <select value={programCode} onChange={(e) => changeProgram(e.target.value)}>
+                <option value="">Select a program</option>
+                {programs.map((p) => <option key={p.code} value={p.code}>{p.code}</option>)}
+              </select>
+            </label>
+          )}
         </div>
       </header>
 
@@ -67,11 +74,18 @@ export default function App() {
         <nav className="tabs" aria-label="Sections">
           <button type="button" aria-current={activeView === "dvps" ? "page" : undefined} onClick={() => changeView("dvps")}>DVPs</button>
           <button type="button" aria-current={activeView === "manage" ? "page" : undefined} onClick={() => changeView("manage")}>Manage program DVPs</button>
+          <button type="button" aria-current={activeView === "catalog" ? "page" : undefined} onClick={() => changeView("catalog")}>DVP catalog</button>
+          <button type="button" aria-current={activeView === "programs" ? "page" : undefined} onClick={() => changeView("programs")}>Programs</button>
         </nav>
       )}
 
       <main>
-        {!programCode ? (
+        {activeView === "catalog" ? (
+          <CatalogView programs={programs} />
+        ) : activeView === "programs" ? (
+          <ProgramsView programs={programs} onCreated={loadPrograms}
+            onManage={(code) => { setProgramCode(code); changeView("manage"); }} />
+        ) : !programCode ? (
           <p className="notice">
             {activeView === "manage" ? "Choose a program to choose which DVPs apply to it." : "Choose a program to see the DVPs that apply to it."}
           </p>

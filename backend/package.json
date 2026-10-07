@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "seed": "node scripts/seed.js",
-    "create-user": "node scripts/create-user.js"
+    "create-user": "node scripts/create-user.js",
+    "test:api": "node tests/api.test.js"
   },
   "engines": {
     "node": ">=18"
@@ -18,6 +19,7 @@
     "express": "^4.22.3",
     "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.24.4"
+    "mongoose": "^8.24.4",
+    "multer": "^2.4.0"
   }
 }

@@ -12,8 +12,8 @@ const COLORS = ["Red", "Blue", "Green"];
 const MAX_REMARKS = 2000;
 
 const testNumber = (code) => code.replace(/^[UV]DVP-/, "");
-// Number shown to users: VRC-<program>-<catalog code>, e.g. VRC-S302-UDVP-101-01
-const dvpNumber = (programCode, dvpCode) => `VRC-${programCode}-${dvpCode}`;
+// Number shown to users: <program>-<catalog code>, e.g. S302-UDVP-101-01
+const dvpNumber = (programCode, dvpCode) => `${programCode}-${dvpCode}`;
 // Rows created before `applicable` existed count as switched on
 const isApplicable = { applicable: { $ne: false } };
 
@@ -56,6 +56,7 @@ router.get("/", requireAuth(), async (req, res) => {
     res.json(await Promise.all(programs.map(async (p) => ({
       code: p.code,
       name: p.name,
+      description: p.description || "",
       dvpCount:  await ProgramDvp.countDocuments({ program: p._id, ...isApplicable }),
       doneCount: await ProgramDvp.countDocuments({ program: p._id, ...isApplicable, completedStatus: "Done" }),
     }))));

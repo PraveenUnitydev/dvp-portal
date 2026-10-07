@@ -23,7 +23,10 @@ app.use((req, res, next) => {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Content-Security-Policy",
     "default-src 'self'; script-src 'self'; " +
-    "style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; " +
+    "style-src 'self' 'unsafe-inline'; font-src 'self' data:; " +
+    // blob: lets the Add DVP form preview a chosen image before it is uploaded. It only covers files
+    // the page itself just created in the browser; scripts are still limited to 'self'.
+    "img-src 'self' data: blob:; " +
     "connect-src 'self'; frame-ancestors 'self';");
   next();
 });
@@ -43,7 +46,10 @@ app.use("/api", (req, res) => res.status(404).json({ message: "Not found." }));
 
 // DVP reference images (from the master sheet). Names change whenever the
 // sheet is re-imported, so a day of caching is safe.
-app.use("/dvp-images", express.static(path.join(__dirname, "public", "dvp-images"), { maxAge: "1d", fallthrough: false }));
+// Sheet images ship with the app; images added in the portal live in the uploads folder (see config.js)
+const { SHEET_IMAGE_DIR, UPLOAD_IMAGE_DIR } = require("./config");
+app.use("/dvp-images", express.static(SHEET_IMAGE_DIR, { maxAge: "1d", fallthrough: true }));
+app.use("/dvp-images", express.static(UPLOAD_IMAGE_DIR, { maxAge: "1d", fallthrough: false }));
 
 // Serve the built frontend; never cache index.html (lesson from VRSP)
 const buildPath = path.join(__dirname, "build");

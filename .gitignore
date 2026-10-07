@@ -8,3 +8,6 @@ backend/build/
 .DS_Store
 __pycache__/
 *.pyc
+
+# Images uploaded through the portal (kept out of git so deploys never touch them)
+backend/uploads/
