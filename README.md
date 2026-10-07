@@ -120,6 +120,28 @@ npm install
 npm run dev                   # http://localhost:5173
 ```
 
+## LOP concerns
+
+For a DVP that is marked **Red** in a program, anyone signed in (user or admin) can raise a **LOP concern** from the
+DVP's drawer (second tab, **LOP concerns**) or the **Raise LOP** / **LOP · n** button in the table.
+
+Each entry records: the concern details, the **CAS version** and/or **CAD model version** (at least one), up to 4
+pictures, **who raised it** (name and role, taken from the sign-in) and **when**. A later update is **added** to the
+history; it never replaces an earlier entry, and nothing can be edited or deleted (the API has no route for it).
+The history shows newest first, with what changed in the versions since the previous entry. If the DVP stops being
+Red, the history stays readable and new entries are switched off until it is Red again. History belongs to one DVP in
+one program (the same DVP in another program has its own).
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/programs/:code/dvps/:dvpCode/lop` | the full history, plus `enabled` (true only while the DVP is Red) |
+| POST | `/api/programs/:code/dvps/:dvpCode/lop` | add an entry: multipart `details`, `casVersion`, `cadVersion`, up to 4 `images` (409 if not Red) |
+| GET | `/api/lop-images/:file` | a picture; signed-in users only |
+
+`GET /api/programs/:code/dvps` now also returns `lopCount` and `lastLopAt` for each DVP. Pictures are kept in
+`uploads/lop-images/` (see `UPLOAD_DIR`) and are not publicly reachable. Text follows the same rules as everywhere
+else (no leading `=`, `+`, `-`, `@`; no control characters).
+
 ## Tests
 
 ```bash
