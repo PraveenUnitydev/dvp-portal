@@ -6,7 +6,7 @@ import AuthImage from "./AuthImage.jsx";
 const MAX_IMAGES = 4;
 const MAX_IMAGE_MB = 3;
 const MAX_DETAILS = 4000;
-const MAX_VERSION = 120;
+const MAX_MODEL = 300;
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 const when = (iso) => new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
@@ -15,14 +15,13 @@ const sizeText = (bytes) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(byt
 
 // The LOP tab for one DVP in one program: raise a concern or add an update, and read the full history.
 // Entries are only ever added. An update never replaces an earlier one, so the history shows who raised what,
-// when, and against which CAS / CAD model version.
+// when, and against which CAS / CAD model.
 export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [details, setDetails] = useState("");
-  const [casVersion, setCasVersion] = useState("");
-  const [cadVersion, setCadVersion] = useState("");
+  const [modelDetails, setModelDetails] = useState("");
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
@@ -34,7 +33,7 @@ export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
     .catch((err) => { setError(err.message); setStatus("error"); });
   useEffect(() => { load(); }, [programCode, dvp.code]);
 
-  const dirty = details.trim() !== "" || casVersion.trim() !== "" || cadVersion.trim() !== "" || files.length > 0;
+  const dirty = details.trim() !== "" || modelDetails.trim() !== "" || files.length > 0;
   useEffect(() => { if (onDirty) onDirty(dirty); }, [dirty]);
   useEffect(() => () => { if (onDirty) onDirty(false); }, []);
 
@@ -57,14 +56,14 @@ export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!details.trim()) { setFormError("Describe the concern."); return; }
-    if (!casVersion.trim() && !cadVersion.trim()) { setFormError("Enter the CAS version, the CAD model version, or both."); return; }
+    if (!modelDetails.trim()) { setFormError("Enter the CAS/CAD details this concern was found on."); return; }
     const fd = new FormData();
-    fd.append("details", details.trim()); fd.append("casVersion", casVersion.trim()); fd.append("cadVersion", cadVersion.trim());
+    fd.append("details", details.trim()); fd.append("modelDetails", modelDetails.trim());
     files.forEach((f) => fd.append("images", f, f.name));
     setBusy(true); setFormError("");
     try {
       const entry = await addLop(programCode, dvp.code, fd);
-      setDetails(""); setCasVersion(""); setCadVersion(""); setFiles([]);
+      setDetails(""); setModelDetails(""); setFiles([]);
       setFlash(`Added LOP #${entry.seq}.`);
       await load();
     } catch (err) {
@@ -91,15 +90,10 @@ export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
             <textarea rows={5} maxLength={MAX_DETAILS} value={details} onChange={(e) => setDetails(e.target.value)} />
             <small className="hint">{details.length} / {MAX_DETAILS}</small>
           </label>
-          <div className="form-grid">
-            <label className="field"><span>CAS version</span>
-              <input value={casVersion} maxLength={MAX_VERSION} onChange={(e) => setCasVersion(e.target.value)} placeholder="e.g. CAS v2.4" />
-            </label>
-            <label className="field"><span>CAD model version</span>
-              <input value={cadVersion} maxLength={MAX_VERSION} onChange={(e) => setCadVersion(e.target.value)} placeholder="e.g. CAD model A12" />
-            </label>
-          </div>
-          <small className="hint">Enter at least one of the two versions. Text can't start with =, + , - or @ (spreadsheets read these as formulas).</small>
+          <label className="field"><span>CAS/CAD details *</span>
+            <input value={modelDetails} maxLength={MAX_MODEL} onChange={(e) => setModelDetails(e.target.value)} placeholder="e.g. CAS v2.4, CAD model A12" />
+            <small className="hint">The CAS or CAD model and version this concern was found on. Text can't start with =, + , - or @ (spreadsheets read these as formulas).</small>
+          </label>
           <label className="field"><span>Pictures of the concern (up to {MAX_IMAGES}; PNG, JPEG or WebP, {MAX_IMAGE_MB} MB each)</span>
             <input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={files.length >= MAX_IMAGES}
               onChange={(e) => { const chosen = Array.from(e.target.files); e.target.value = ""; addFiles(chosen); }} />
@@ -141,9 +135,8 @@ export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
                   <time dateTime={e.createdAt}>{when(e.createdAt)}</time>
                 </div>
                 <p className="lop-by">Raised by <strong>{e.raisedBy.name || e.raisedBy.username}</strong>{e.raisedBy.role ? ` (${roleText(e.raisedBy.role)})` : ""}</p>
-                <dl className="lop-versions">
-                  <div><dt>CAS version</dt><dd>{e.casVersion || <span className="muted">Not given</span>}{changed("casVersion") && <small className="changed"> changed from {prev.casVersion || "not given"}</small>}</dd></div>
-                  <div><dt>CAD model version</dt><dd>{e.cadVersion || <span className="muted">Not given</span>}{changed("cadVersion") && <small className="changed"> changed from {prev.cadVersion || "not given"}</small>}</dd></div>
+                <dl className="lop-versions lop-model">
+                  <div><dt>CAS/CAD details</dt><dd className="pre">{e.modelDetails || <span className="muted">Not given</span>}{changed("modelDetails") && <small className="changed">changed from {prev.modelDetails || "not given"}</small>}</dd></div>
                 </dl>
                 <p className="pre">{e.details}</p>
                 {e.images.length > 0 && (

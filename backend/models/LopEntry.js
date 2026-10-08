@@ -10,6 +10,8 @@ const lopEntrySchema = new mongoose.Schema({
   details:    { type: String, required: true, maxlength: 4000, immutable: true },
   casVersion: { type: String, default: "", maxlength: 120, immutable: true },
   cadVersion: { type: String, default: "", maxlength: 120, immutable: true },
+  // One free-text field for the CAS / CAD model the concern was found on (replaces the two fields above for new entries)
+  modelDetails: { type: String, default: "", maxlength: 300, immutable: true },
   images:     { type: [String], default: [], immutable: true },       // file names in the LOP uploads folder
   // Who raised it. Taken from the signed-in user on the server, never from what the browser sends.
   raisedBy: {

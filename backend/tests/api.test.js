@@ -301,7 +301,7 @@ async function startServer(env, port) {
   const lopUrl = (program, code) => `/api/programs/${program}/dvps/${code}/lop`;
   const colour = (program, code, color) => call("PATCH", `/api/programs/${program}/dvps/${code}`, { token: maya, json: { color } });
   const raise = (fields, files = [], who = maya, program = "U171", code = "UDVP-101-02") => call("POST", lopUrl(program, code), { token: who, form: formOf(fields, files) });
-  const good = { details: "Seat rail interferes with the pedal box at full recline.", casVersion: "CAS v2.4", cadVersion: "CAD model A12" };
+  const good = { details: "Seat rail interferes with the pedal box at full recline.", modelDetails: "CAS v2.4, CAD model A12" };
   const history = async (program = "U171", code = "UDVP-101-02") => (await call("GET", lopUrl(program, code), { token: maya })).body;
 
   await colour("U171", "UDVP-101-02", "Red"); await colour("U171", "UDVP-102-01", "Green");
@@ -315,7 +315,7 @@ async function startServer(env, port) {
   check("Raising on a DVP that is not Red -> 409 that says why", r.status === 409 && /only be added while U171-UDVP-102-01 is marked Red/.test(r.body.message) && /marked Green/.test(r.body.message), r.body.message);
 
   r = await raise({ ...good, raisedBy: JSON.stringify({ name: "Somebody Else", role: "ADMIN" }), seq: "99", username: "forged" });
-  check("A plain user can raise one; it is #1", r.status === 201 && r.body.seq === 1 && r.body.details === good.details && r.body.casVersion === "CAS v2.4" && r.body.cadVersion === "CAD model A12");
+  check("A plain user can raise one; it is #1", r.status === 201 && r.body.seq === 1 && r.body.details === good.details && r.body.modelDetails === "CAS v2.4, CAD model A12");
   check("Who raised it comes from the sign-in (name, username, role), not from what was sent", r.body.raisedBy.name === "Maya User" && r.body.raisedBy.username === "maya" && r.body.raisedBy.role === "USER", JSON.stringify(r.body.raisedBy));
   check("It carries its date and time", Boolean(r.body.createdAt) && Math.abs(Date.now() - new Date(r.body.createdAt).getTime()) < 60000);
   const first = r.body;
@@ -327,10 +327,11 @@ async function startServer(env, port) {
   await refused("Details over 4000 characters", { ...good, details: "x".repeat(4001) });
   await refused("Details starting with a formula character", { ...good, details: "=HYPERLINK(1)" });
   await refused("Details with a control character", { ...good, details: "a\u0000b" });
-  await refused("Neither CAS nor CAD version", { details: "x", casVersion: "", cadVersion: "" });
-  await refused("A version over 120 characters", { ...good, cadVersion: "v".repeat(121) });
-  await refused("A version starting with a formula character", { ...good, casVersion: "@SUM(A1)" });
-  check("Only a CAS version, or only a CAD version, is enough", (await raise({ details: "Only CAS given", casVersion: "CAS v1" })).status === 201 && (await raise({ details: "Only CAD given", cadVersion: "CAD B3" })).status === 201);
+  await refused("No CAS/CAD details", { details: "x", modelDetails: "" });
+  await refused("CAS/CAD details over 300 characters", { ...good, modelDetails: "v".repeat(301) });
+  await refused("CAS/CAD details starting with a formula character", { ...good, modelDetails: "@SUM(A1)" });
+  { const a = await raise({ details: "Sent by an older page", casVersion: "CAS v1" }), b = await raise({ details: "Sent by an older page", cadVersion: "CAD B3" });
+    check("A page from before the change (separate CAS / CAD fields) still works: combined into CAS/CAD details", a.status === 201 && a.body.modelDetails === "CAS version: CAS v1" && b.status === 201 && b.body.modelDetails === "CAD model version: CAD B3", JSON.stringify([a.body.modelDetails, b.body.modelDetails])); }
   check("Refused entries were not saved (only the 3 good ones exist)", (await history()).count === lopBefore + 2);
 
   section("LOP: images");

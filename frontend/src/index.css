@@ -291,3 +291,6 @@ thead th.col-status { z-index: 3; }
   .lop-versions > div + div { border-left: 0; border-top: 1px solid var(--rule); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.lop-model { grid-template-columns: 1fr; }
+.lop-model dd.pre { white-space: pre-line; }

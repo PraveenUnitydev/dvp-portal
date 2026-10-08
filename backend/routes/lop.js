@@ -10,6 +10,9 @@ const LopEntry = require("../models/LopEntry");
 const { requireAuth } = require("../middleware/auth");
 const { UPLOAD_LOP_DIR } = require("../config");
 const { cleanFields, sniffImage } = require("../utils/validation");
+
+// Entries from before the single field showed CAS and CAD separately; present them as one text
+const legacyModel = (cas, cad) => [cas && `CAS version: ${cas}`, cad && `CAD model version: ${cad}`].filter(Boolean).join("\n");
 const { findProgram, dvpNumber, isApplicable, DVP_CODE } = require("./programs").helpers;
 
 // LOP concerns: raised against a DVP that is marked Red in a program, kept as an append-only history.
@@ -39,6 +42,7 @@ const safeName = (n) => String(n || "file").replace(/[^\w.\- ]/g, "").slice(0, 6
 
 const entryJson = (e) => ({
   id: String(e._id), seq: e.seq, details: e.details, casVersion: e.casVersion || "", cadVersion: e.cadVersion || "",
+  modelDetails: e.modelDetails || legacyModel(e.casVersion, e.cadVersion),
   images: (e.images || []).map((f) => `/api/lop-images/${f}`),
   raisedBy: { name: e.raisedBy?.name || "", username: e.raisedBy?.username || "", role: e.raisedBy?.role || "" },
   createdAt: e.createdAt,
@@ -68,7 +72,7 @@ router.get("/programs/:code/dvps/:dvpCode/lop", requireAuth(), async (req, res) 
   }
 });
 
-// POST /api/programs/:code/dvps/:dvpCode/lop - add a new entry (multipart: details, casVersion, cadVersion, images)
+// POST /api/programs/:code/dvps/:dvpCode/lop - add a new entry (multipart: details, modelDetails, images)
 router.post("/programs/:code/dvps/:dvpCode/lop", requireAuth(), limiter, receiveForm, async (req, res) => {
   const written = [];
   try {
@@ -82,10 +86,14 @@ router.post("/programs/:code/dvps/:dvpCode/lop", requireAuth(), limiter, receive
       details:    { label: "Concern details", max: 4000, required: true },
       casVersion: { label: "CAS version", max: 120 },
       cadVersion: { label: "CAD model version", max: 120 },
+      modelDetails: { label: "CAS/CAD details", max: 300 },
     });
     if (text.error) return fail(text.error);
     const v = text.values;
-    if (!v.casVersion && !v.cadVersion) return fail("Enter the CAS or CAD model version this concern was found on.");
+    // One CAS/CAD details field. A page from before this change sends the two old fields: they are combined.
+    v.modelDetails = v.modelDetails || legacyModel(v.casVersion, v.cadVersion);
+    if (!v.modelDetails) return fail("Enter the CAS/CAD details this concern was found on.");
+    v.casVersion = ""; v.cadVersion = "";
 
     const files = req.files || [];
     const kinds = [];
