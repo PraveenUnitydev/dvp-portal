@@ -204,6 +204,30 @@ Local username/password accounts for now. The rest of the app only relies on a
 user's name and role, so this can be swapped for Azure AD SSO (as in VRSP)
 without changing the pages or the data.
 
+## Observation images
+
+Each DVP in a program has an **Observation images** column next to *Image reference*: supporting pictures taken
+during that program's assessment. Reference images belong to the catalog DVP and are the same in every program;
+observation images belong to one program.
+
+- **+ Add images** in the column (or the DVP's details panel) opens the panel at the observation images. Choose or
+  drop PNG / JPEG / WebP pictures; they upload straight away. Up to 5 MB each, 12 per DVP (set
+  `OBSERVATION_MAX_IMAGES` to change), checked by content.
+- Anyone who can update DVPs can add them. A picture can be removed by whoever added it, or by an admin.
+- Click a thumbnail to view it full size, with who added it and when.
+- They are in the reports: the DVP summary, the DVP PowerPoint (all of them) and the program PowerPoint (up to 6 per
+  DVP, to keep the file small).
+- Stored in `UPLOAD_DIR/observation-images/` (outside git) and served only to signed-in users. The table loads them
+  only as they scroll into view.
+
+| Method | Path | Who |
+|---|---|---|
+| POST | `/api/programs/:code/dvps/:dvpCode/observations` | admin, user (multipart: `images`, up to 6 at a time) |
+| DELETE | `/api/programs/:code/dvps/:dvpCode/observations/:file` | the uploader, or an admin |
+| GET | `/api/observation-images/:file` | signed in |
+
+Test with mock data: `cd backend && npm run test:observations`.
+
 ## Reports
 
 **Reports** (a tab for everyone) makes a report for **all programs**, **one program** or **one DVP**:

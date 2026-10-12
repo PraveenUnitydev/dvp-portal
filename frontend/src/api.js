@@ -53,6 +53,12 @@ export const deleteDvp = (code) => request("DELETE", `/admin/dvps/${encodeURICom
 export const fetchLop = (program, code) => request("GET", `/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(code)}/lop`);
 export const addLop = (program, code, formData) => send("POST", `/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(code)}/lop`, { form: formData });
 
+// Observation images: supporting pictures for one DVP in one program. Both return the updated DVP row.
+export const addObservations = (program, code, formData) =>
+  send("POST", `/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(code)}/observations`, { form: formData });
+export const removeObservation = (program, code, file) =>
+  request("DELETE", `/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(code)}/observations/${encodeURIComponent(file)}`);
+
 // LOP pictures are served only to signed-in people, and a plain <img> can't send the sign-in: fetch them with it
 // and show them from a local blob. Cached per sign-in so a picture is fetched once.
 const pictureCache = new Map();

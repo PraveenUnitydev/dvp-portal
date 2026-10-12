@@ -8,15 +8,31 @@ const Module = require("module");
 let nextId = 1;
 const oid = () => ({ _bsontype: "ObjectId", id: String(nextId++).padStart(24, "0"), toString() { return this.id; }, equals(o) { return String(o) === this.id; } });
 const same = (a, b) => String(a) === String(b);
+// A dotted path, as MongoDB reads it: "observations.3" is the 4th element, "observations.file" is any element's file
+function valuesAt(doc, key) {
+  let vals = [doc];
+  for (const part of key.split(".")) {
+    vals = vals.flatMap((v) => (v == null ? [] : Array.isArray(v) && !/^\d+$/.test(part) ? v.map((x) => x?.[part]) : [v[part]]));
+  }
+  return vals.filter((v) => v !== undefined);
+}
 function matches(doc, q) {
   return Object.entries(q || {}).every(([k, cond]) => {
-    const v = doc[k];
+    const vals = valuesAt(doc, k), v = vals[0];
     if (cond && typeof cond === "object" && !cond._bsontype && !Array.isArray(cond)) {
+      if ("$exists" in cond) return (vals.length > 0) === Boolean(cond.$exists);
       if ("$ne" in cond) return v !== cond.$ne;
       if ("$in" in cond) return cond.$in.some((x) => same(x, v));
     }
-    return same(v, cond);
+    return vals.some((x) => same(x, cond));
   });
+}
+// $set, $push ($each) and $pull ({ field: value }) - what the routes use
+function applyUpdate(row, u) {
+  Object.assign(row, u.$set || {});
+  for (const [k, v] of Object.entries(u.$push || {})) row[k] = [...(row[k] || []), ...(v.$each || [v])];
+  for (const [k, v] of Object.entries(u.$pull || {})) row[k] = (row[k] || []).filter((x) => !matches(x, v));
+  row.updatedAt = new Date();
 }
 function query(rows, single) {
   let out = rows;
@@ -36,6 +52,11 @@ function model(rows) {
     findById: (id) => query(rows.filter((r) => same(r._id, id)), true),
     countDocuments: async (f) => rows.filter((r) => matches(r, f)).length,
     create: async (doc) => { const row = { _id: oid(), createdAt: new Date(Date.now() + rows.length), ...doc }; rows.push(row); return row; },
+    findOneAndUpdate: (f, u) => {
+      const row = rows.find((r) => matches(r, f));
+      if (row) applyUpdate(row, u);
+      return query(row ? [row] : [], true);
+    },
     deleteOne: async (f) => { const i = rows.findIndex((r) => matches(r, f)); if (i >= 0) rows.splice(i, 1); return { deletedCount: i >= 0 ? 1 : 0 }; },
     aggregate: async ([{ $match }]) => {
       const counts = new Map();
@@ -59,6 +80,9 @@ const ProgramDvp = model([
   ...Dvp.rows.slice(0, 10).map((d, i) => ({ _id: oid(), program: S302._id, dvp: d._id, applicable: i !== 9, color: i < 3 ? "Red" : i < 5 ? "Green" : null, completedStatus: "Not done", remarks: "" })),
 ]);
 const red171 = ProgramDvp.rows.filter((r) => same(r.program, U171._id) && r.color === "Red").map((r) => r.dvp);
+const obs = (n, tag) => Array.from({ length: n }, (_, i) => ({ file: `${tag.repeat(24)}-${i + 1}.jpg`, uploadedBy: { username: "naveen", name: "Naveen S" }, uploadedAt: new Date(Date.UTC(2026, 9, 5, 9, i)) }));
+ProgramDvp.rows.find((r) => same(r.program, U171._id) && same(r.dvp, red171[0])).observations = obs(3, "c");
+ProgramDvp.rows.find((r) => same(r.program, U171._id) && r.color === "Green").observations = obs(8, "d");
 const lop = (program, dvp, seq, details, images = []) => ({ _id: oid(), program, dvp, seq, details, modelDetails: `CAS v${seq}.0 / CAD rev ${seq}`, images, raisedBy: { name: "Naveen S", role: "USER" }, createdAt: new Date(Date.UTC(2026, 9, seq, 10, 30)) });
 const LopEntry = model([
   lop(U171._id, red171[0], 1, "Pedal spacing below target: 42 mm measured between brake and accelerator, target 50 mm.", ["aaaaaaaaaaaaaaaaaaaaaaaa-1.png"]),

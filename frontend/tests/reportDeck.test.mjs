@@ -57,9 +57,12 @@ test("file names", () => {
   assert.match(deckFileName({ scope: "program", program: { code: "U171" }, generatedAt: "2026-10-12T05:00:00Z" }), /U171/);
 });
 
-deckTest("DVP report: cover, details, procedure, one slide per LOP entry", async () => {
+const obsPages = (d, limit = 12) => Math.ceil(Math.min((d.observationImages || []).length, limit) / 6) + ((d.observationImages || []).length > limit ? 1 : 0);
+
+deckTest("DVP report: cover, details, observation images, procedure, one slide per LOP entry", async () => {
   const { report, pres, file } = await make("dvp");
-  assert.equal(pres.slides.length, 3 + report.dvp.lop.length);
+  assert.ok(report.dvp.observationImages.length === 3, "sample DVP has observation images");
+  assert.equal(pres.slides.length, 3 + obsPages(report.dvp) + report.dvp.lop.length);
   assert.ok(fs.statSync(file).size > 10000);
 });
 
@@ -68,7 +71,9 @@ deckTest("program report: summary, LOP table + each LOP DVP and entry, all DVPs"
   const lopDvps = report.dvps.filter((d) => d.lopCount > 0);
   const entries = lopDvps.reduce((n, d) => n + d.lop.length, 0);
   const allPages = Math.ceil(report.dvps.length / 10);
-  assert.equal(pres.slides.length, 2 + 1 + lopDvps.length + entries + allPages);
+  const obs = report.dvps.reduce((n, d) => n + obsPages(d, 6), 0);
+  assert.ok(report.dvps.some((d) => d.observationImages.length > 6), "sample has a DVP over the program-report cap");
+  assert.equal(pres.slides.length, 2 + 1 + lopDvps.length + entries + obs + allPages);
 });
 
 deckTest("overall report: summary, programs table, one section per program", async () => {

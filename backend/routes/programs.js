@@ -27,6 +27,14 @@ async function findProgram(req, res) {
   return program;
 }
 
+// Observation images of a program DVP row, oldest first
+const observationsOf = (r) => (r.observations || []).map((o) => ({
+  file: o.file,
+  url: `/api/observation-images/${o.file}`,
+  uploadedBy: { name: o.uploadedBy?.name || o.uploadedBy?.username || "", username: o.uploadedBy?.username || "" },
+  uploadedAt: o.uploadedAt || null,
+}));
+
 function toRow(program, d, r, lopCount = 0) {
   return {
     dvpNumber: dvpNumber(program.code, d.code),
@@ -49,6 +57,7 @@ function toRow(program, d, r, lopCount = 0) {
     updatedBy: r.updatedBy || "",
     updatedAt: r.updatedAt || null,
     lopCount,                       // how many LOP concerns have been raised for this DVP in this program
+    observationImages: observationsOf(r),
   };
 }
 

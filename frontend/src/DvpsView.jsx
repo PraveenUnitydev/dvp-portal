@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchProgramDvps, updateProgramDvp } from "./api.js";
+import ObservationImages from "./ObservationImages.jsx";
 import { COLORS, Clamp, ColorTag, ImageViewer, Thumbnails, useZones } from "./shared.jsx";
 import LopPanel from "./LopPanel.jsx";
 
@@ -41,10 +42,16 @@ export default function DvpsView({ programCode, user }) {
 
   const filtersActive = zone !== "All" || area !== "All" || colorFilter !== "All" || query.trim() !== "";
   const editingDvp = dvps.find((d) => d.code === editing) || null;
+  const viewerDvp = viewer && dvps.find((d) => d.code === viewer.code);
+  const openViewer = (d, index, kind = "reference") => setViewer({ code: d.code, index, kind });
+  const openObservations = (d) => { setEditTab("observations"); setEditing(d.code); };
   const canEdit = user.role === "ADMIN" || user.role === "USER";
 
   // The LOP tab reports its count so the table's "LOP (n)" button stays right without reloading
   const onLopChanged = (code, count, last) => setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === code ? { ...d, lopCount: count, lastLopAt: last } : d)) }));
+
+  // A DVP row changed without closing the drawer (observation images added or removed)
+  const onRowChanged = (updated) => setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === updated.code ? { ...d, ...updated } : d)) }));
 
   const onSaved = (updated) => {
     setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === updated.code ? updated : d)) }));
@@ -110,6 +117,7 @@ export default function DvpsView({ programCode, user }) {
                 <th scope="col" className="col-text">Acceptance criteria</th>
                 <th scope="col" className="col-text">Procedure</th>
                 <th scope="col" className="col-images">Image reference</th>
+                <th scope="col" className="col-images">Observation images</th>
                 <th scope="col" className="col-status">Colour</th>
                 <th scope="col" className="col-remarks">Remarks</th>
               </tr>
@@ -130,7 +138,16 @@ export default function DvpsView({ programCode, user }) {
                   <td className="col-cas">{d.cas}</td>
                   <td className="col-text"><Clamp text={d.acceptanceCriteria} empty="Not defined yet" /></td>
                   <td className="col-text"><Clamp text={d.procedure} empty="Not defined yet" /></td>
-                  <td className="col-images"><Thumbnails dvp={d} onOpen={(i) => setViewer({ dvp: d, index: i })} /></td>
+                  <td className="col-images"><Thumbnails dvp={d} onOpen={(i) => openViewer(d, i)} /></td>
+                  <td className="col-images">
+                    <Thumbnails dvp={d} kind="observation" empty="None" onOpen={(i) => openViewer(d, i, "observation")} />
+                    {canEdit && (
+                      <button type="button" className="obs-add-btn" onClick={() => openObservations(d)}
+                        title={`Add or remove observation images for ${d.dvpNumber}`}>
+                        {(d.observationImages || []).length ? "Manage" : "+ Add images"}
+                      </button>
+                    )}
+                  </td>
                   <td className="col-status">
                     <div className="status-color"><ColorTag color={d.color} /></div>
                     {(d.color === "Red" || d.lopCount > 0) && (
@@ -147,17 +164,20 @@ export default function DvpsView({ programCode, user }) {
       )}
 
       {editingDvp && (
-        <EditPanel dvp={editingDvp} programCode={programCode} canEdit={canEdit} initialTab={editTab} onLopChanged={onLopChanged}
-          onClose={() => setEditing(null)} onSaved={onSaved}
-          onOpenImage={(i) => setViewer({ dvp: editingDvp, index: i })} imageOpen={Boolean(viewer)} />
+        <EditPanel dvp={editingDvp} programCode={programCode} canEdit={canEdit} user={user} initialTab={editTab} onLopChanged={onLopChanged}
+          onClose={() => setEditing(null)} onSaved={onSaved} onRowChanged={onRowChanged}
+          onOpenImage={(i, kind) => openViewer(editingDvp, i, kind)} imageOpen={Boolean(viewer)} />
       )}
-      {viewer && <ImageViewer {...viewer} onClose={() => setViewer(null)} />}
+      {viewerDvp && <ImageViewer dvp={viewerDvp} index={viewer.index} kind={viewer.kind} onClose={() => setViewer(null)} />}
     </>
   );
 }
 
-function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClose, onSaved, onOpenImage, imageOpen }) {
-  const [tab, setTab] = useState(initialTab || "details");
+function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, onClose, onSaved, onRowChanged, onOpenImage, imageOpen }) {
+  // "observations" opens the details tab at the observation images
+  const [tab, setTab] = useState(initialTab === "lop" ? "lop" : "details");
+  const obsRef = useRef(null);
+  const [obsBusy, setObsBusy] = useState(false);
   const [lopDirty, setLopDirty] = useState(false);
   const [color, setColor] = useState(dvp.color);
   const [remarks, setRemarks] = useState(dvp.remarks);
@@ -167,11 +187,17 @@ function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClos
 
   const dirty = color !== dvp.color || remarks.trim() !== (dvp.remarks || "");
 
-  const close = () => { if ((!dirty && !lopDirty) || window.confirm("Discard your unsaved changes?")) onClose(); };
+  const close = () => {
+    if (obsBusy && !window.confirm("Images are still uploading. Close anyway? The upload carries on.")) return;
+    if ((!dirty && !lopDirty) || window.confirm("Discard your unsaved changes?")) onClose();
+  };
 
   useEffect(() => {
     const opener = document.activeElement;
-    headingRef.current?.focus();
+    if (initialTab === "observations" && obsRef.current) {
+      obsRef.current.scrollIntoView({ block: "start" });
+      obsRef.current.focus({ preventScroll: true });
+    } else headingRef.current?.focus();
     return () => opener?.focus?.();
   }, []);
   useEffect(() => {
@@ -253,12 +279,17 @@ function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClos
               {dvp.referenceImages.length === 0 ? "No image" : (
                 <div className="drawer-thumbs">
                   {dvp.referenceImages.map((src, i) => (
-                    <button key={src} type="button" className="thumb thumb-lg" onClick={() => onOpenImage(i)} aria-label={`Open image ${i + 1}`}>
+                    <button key={src} type="button" className="thumb thumb-lg" onClick={() => onOpenImage(i, "reference")} aria-label={`Open image ${i + 1}`}>
                       <img src={src} alt="" loading="lazy" />
                     </button>
                   ))}
                 </div>
               )}
+            </dd>
+            <dt id="obs-heading" ref={obsRef} tabIndex={-1}>Observation images</dt>
+            <dd>
+              <ObservationImages programCode={programCode} dvp={dvp} canEdit={canEdit} user={user}
+                onChanged={onRowChanged} onOpen={(i) => onOpenImage(i, "observation")} onBusy={setObsBusy} />
             </dd>
           </dl>
           </>)}

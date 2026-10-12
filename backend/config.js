@@ -10,6 +10,8 @@ module.exports = {
   UPLOAD_IMAGE_DIR: path.join(UPLOAD_DIR, "dvp-images"),
   // Pictures attached to LOP concerns. Unlike reference images these are served only to signed-in users.
   UPLOAD_LOP_DIR: path.join(UPLOAD_DIR, "lop-images"),
+  // Observation images added to a DVP in a program. Served only to signed-in users.
+  UPLOAD_OBSERVATION_DIR: path.join(UPLOAD_DIR, "observation-images"),
   // VR reports uploaded by admins for each program. Served only to signed-in users.
   UPLOAD_VR_REPORT_DIR: path.join(UPLOAD_DIR, "vr-reports"),
 };

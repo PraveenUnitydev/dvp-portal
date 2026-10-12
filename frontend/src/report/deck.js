@@ -213,6 +213,33 @@ function dvpDetailSlide(pres, dvp, pics, kicker) {
   return s;
 }
 
+/** Observation images of a DVP: up to 6 per slide, each captioned with who added it and when. */
+function observationSlides(pres, dvp, pics, kicker, limit = 12) {
+  const all = (dvp.observationImages || []).slice(0, limit);
+  for (let start = 0; start < all.length; start += 6) {
+    const page = all.slice(start, start + 6);
+    const s = pres.addSlide({ masterName: "CONTENT" });
+    const pages = Math.ceil(all.length / 6);
+    heading(s, `Observation images  ·  ${dvp.dvpNumber}${pages > 1 ? `  (${start / 6 + 1} of ${pages})` : ""}`, kicker);
+    const cols = page.length <= 2 ? page.length : 3, rows = Math.ceil(page.length / cols), gap = 0.25, capH = 0.3;
+    const cw = (W - 2 * M - gap * (cols - 1)) / cols, ch = (5.35 - gap * (rows - 1)) / rows - capH;
+    page.forEach((o, i) => {
+      const x = M + (i % cols) * (cw + gap), y = 1.45 + Math.floor(i / cols) * (ch + capH + gap);
+      if (!picture(s, pics.get(o.url), { x, y, w: cw, h: ch })) {
+        s.addShape("rect", { x, y, w: cw, h: ch, fill: { color: PAPER }, line: { color: PAPER } });
+        s.addText("Picture could not be loaded", { x, y, w: cw, h: ch, fontFace: FONT, fontSize: 12, color: FAINT, align: "center", valign: "middle", margin: 0, isTextBox: true });
+      }
+      s.addText(`${o.uploadedBy?.name || ""}${o.uploadedAt ? `  ·  ${dateTimeText(o.uploadedAt)}` : ""}`, { x, y: y + ch, w: cw, h: capH, fontFace: FONT, fontSize: 11, color: SOFT, align: "center", valign: "middle", margin: 0, isTextBox: true });
+    });
+  }
+  if ((dvp.observationImages || []).length > all.length) {
+    // (only in the program report, which keeps the file small; the DVP report has them all)
+    const s = pres.addSlide({ masterName: "CONTENT" });
+    heading(s, `Observation images  ·  ${dvp.dvpNumber}`, kicker);
+    s.addText(`${plural(dvp.observationImages.length - all.length, "more image")} in the portal. The DVP report has all of them.`, { x: M, y: 1.45, w: W - 2 * M, h: 0.5, fontFace: FONT, fontSize: 14, color: SOFT, margin: 0, isTextBox: true });
+  }
+}
+
 function lopEntrySlide(pres, dvp, entry, pics, kicker) {
   const s = pres.addSlide({ masterName: "CONTENT" });
   heading(s, `LOP concern #${entry.seq}  ·  ${dvp.dvpNumber}`, kicker);
@@ -242,10 +269,11 @@ function lopEntrySlide(pres, dvp, entry, pics, kicker) {
 async function dvpDeck(PptxGenJS, report, loadImage, progress) {
   const d = report.dvp;
   const pres = newDeck(PptxGenJS, `DVP report ${d.dvpNumber}`);
-  const urls = [...(d.referenceImages || []).slice(0, 2), ...d.lop.flatMap((e) => (e.images || []).slice(0, 4))];
+  const urls = [...(d.referenceImages || []).slice(0, 2), ...(d.observationImages || []).map((o) => o.url), ...d.lop.flatMap((e) => (e.images || []).slice(0, 4))];
   const pics = await loadAll(urls, loadImage, progress);
   cover(pres, d.dvpNumber, `${d.component || ""}${d.component && d.evaluationParameter ? " — " : ""}${d.evaluationParameter || ""}  ·  ${report.program.code}`, report);
   dvpDetailSlide(pres, d, pics, `PROGRAM ${report.program.code}`);
+  observationSlides(pres, d, pics, `PROGRAM ${report.program.code}`);
   if (clean(d.procedure)) {
     const s = pres.addSlide({ masterName: "CONTENT" });
     heading(s, "Procedure", d.dvpNumber);
@@ -262,7 +290,10 @@ async function programDeck(PptxGenJS, report, loadImage, progress) {
   const { program, counts, zones, dvps } = report;
   const pres = newDeck(PptxGenJS, `DVP report ${program.code}`);
   const lopDvps = dvps.filter((d) => d.lopCount > 0);
+  const OBS_PER_DVP = 6;          // keeps a program deck a sensible size; the DVP report has every image
+  const obsDvps = dvps.filter((d) => (d.observationImages || []).length > 0);
   const urls = [
+    ...obsDvps.flatMap((d) => d.observationImages.slice(0, OBS_PER_DVP).map((o) => o.url)),
     ...lopDvps.flatMap((d) => (d.referenceImages || []).slice(0, 2)),
     ...lopDvps.flatMap((d) => d.lop.flatMap((e) => (e.images || []).slice(0, 4))),
   ];
@@ -297,9 +328,13 @@ async function programDeck(PptxGenJS, report, loadImage, progress) {
     ], { title: "DVPs with LOP concerns", kicker: `PROGRAM ${program.code}`, perPage: 9 });
     for (const d of lopDvps) {
       dvpDetailSlide(pres, d, pics, `PROGRAM ${program.code}  ·  LOP CONCERNS`);
+      observationSlides(pres, d, pics, `PROGRAM ${program.code}  ·  LOP CONCERNS`, OBS_PER_DVP);
       [...d.lop].sort((a, b) => a.seq - b.seq).forEach((e) => lopEntrySlide(pres, d, e, pics, `PROGRAM ${program.code}  ·  LOP HISTORY`));
     }
   }
+
+  // Observation images of the other DVPs (those with LOP concerns already have theirs above)
+  for (const d of obsDvps.filter((x) => !(x.lopCount > 0))) observationSlides(pres, d, pics, `PROGRAM ${program.code}  ·  OBSERVATIONS`, OBS_PER_DVP);
 
   // Every DVP, for reference
   pagedTable(pres, dvps, [

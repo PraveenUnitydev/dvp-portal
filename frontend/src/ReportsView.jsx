@@ -259,6 +259,16 @@ function DvpSummary({ report }) {
         <dt>CAS</dt><dd>{d.cas || "—"}</dd>
         <dt>Remarks</dt><dd className="pre">{d.remarks || "—"}</dd>
         <dt>Acceptance criteria</dt><dd className="pre">{d.acceptanceCriteria || "Not defined yet"}</dd>
+        <dt>Observation images</dt>
+        <dd>
+          {(d.observationImages || []).length === 0 ? <span className="muted">None</span> : (
+            <div className="drawer-thumbs">
+              {d.observationImages.map((o) => (
+                <span key={o.file} className="thumb thumb-lg" title={`${o.uploadedBy?.name || ""} · ${when(o.uploadedAt)}`}><AuthImage src={o.url} /></span>
+              ))}
+            </div>
+          )}
+        </dd>
       </dl>
       <h3>LOP history ({d.lop.length})</h3>
       {d.lop.length === 0 ? <p className="muted">No LOP concerns have been raised for this DVP.</p> : (

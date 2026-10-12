@@ -13,6 +13,17 @@ const programDvpSchema = new mongoose.Schema({
   reason:          { type: String, trim: true, default: "" },
   remarks:         { type: String, default: "", maxlength: 2000 },
   updatedBy:       { type: String, default: "" },
+  // Supporting pictures taken during the assessment of this DVP in this program (the reference images belong to
+  // the catalog DVP and are the same in every program). Files live in the observation uploads folder.
+  observations: {
+    type: [{
+      _id: false,
+      file:       { type: String, required: true },
+      uploadedBy: { userId: mongoose.Schema.Types.ObjectId, username: String, name: String },
+      uploadedAt: { type: Date, default: Date.now },
+    }],
+    default: undefined,             // rows from before this existed have no list; treated as empty
+  },
 }, { timestamps: true });
 
 programDvpSchema.index({ program: 1, dvp: 1 }, { unique: true });
