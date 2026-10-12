@@ -35,6 +35,8 @@ function model(rows) {
     findOne: (f) => query(rows.filter((r) => matches(r, f)), true),
     findById: (id) => query(rows.filter((r) => same(r._id, id)), true),
     countDocuments: async (f) => rows.filter((r) => matches(r, f)).length,
+    create: async (doc) => { const row = { _id: oid(), createdAt: new Date(Date.now() + rows.length), ...doc }; rows.push(row); return row; },
+    deleteOne: async (f) => { const i = rows.findIndex((r) => matches(r, f)); if (i >= 0) rows.splice(i, 1); return { deletedCount: i >= 0 ? 1 : 0 }; },
     aggregate: async ([{ $match }]) => {
       const counts = new Map();
       rows.filter((r) => matches(r, $match)).forEach((r) => counts.set(String(r.dvp), { _id: r.dvp, n: (counts.get(String(r.dvp))?.n || 0) + 1 }));
@@ -67,10 +69,13 @@ const LopEntry = model([
   lop(S302._id, Dvp.rows[9]._id, 1, "On a DVP that is switched off: must not be counted.", []),
 ]);
 const admin = { _id: oid(), username: "admin", name: "Portal Admin", role: "ADMIN", active: true };
-const User = model([admin]);
+const maya = { _id: oid(), username: "maya", name: "Maya User", role: "USER", active: true };
+const User = model([admin, maya]);
 
-const stub = { Dvp, Program, ProgramDvp, LopEntry, User };
-module.exports = { ...stub, U171, S302, OLD, admin, red171, same, dvpByCode };
+const VrReport = model([]);
+
+const stub = { Dvp, Program, ProgramDvp, LopEntry, User, VrReport };
+module.exports = { ...stub, U171, S302, OLD, admin, maya, red171, same, dvpByCode };
 const origLoad = Module._load;
 Module._load = function (request, parent, isMain) {
   const m = /models\/(\w+)$/.exec(request);

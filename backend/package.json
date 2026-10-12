@@ -9,7 +9,8 @@
     "seed": "node scripts/seed.js",
     "create-user": "node scripts/create-user.js",
     "test:api": "node tests/api.test.js",
-    "test:report": "node tests/report.test.js"
+    "test:report": "node tests/report.test.js",
+    "test:vr-reports": "node tests/vrReports.test.js"
   },
   "engines": {
     "node": ">=18"

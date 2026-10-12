@@ -210,7 +210,9 @@ without changing the pages or the data.
 
 - **View summary** shows it on the page: colour counts (Red / Blue / Green / Open), how many DVPs are assessed,
   LOP concerns; per zone for a program; the LOP history with pictures for a DVP. Rows link to the narrower report.
-- **Download PowerPoint** builds a `.pptx` in the browser with the same content:
+- **Download VR report** downloads the lab's own VR report for the program: the newest file an admin uploaded (see
+  *VR reports* below). For *All programs*, the newest report of each program is listed with a Download button.
+- **Generate PowerPoint** builds a `.pptx` in the browser from the portal's data, with the same content as the summary:
   - *All programs*: summary with a chart per program, a table of all programs, then each program's LOP concerns.
   - *One program*: summary with a chart per zone, the DVPs with LOP concerns (each with its details, reference
     images and one slide per LOP entry with its pictures), then every DVP with its colour and remarks.
@@ -228,6 +230,31 @@ out; the report is still made.
 Tests with mock data (no MongoDB needed): `cd backend && npm run test:report` runs the report API on the real routes
 with in-memory data from the 135-DVP catalog and writes sample reports; then `cd frontend && npm run test:unit` builds
 the three PowerPoint reports from those samples into `frontend/tests/out/`.
+
+### VR reports (uploaded files)
+
+Admins upload the VR reports made for a program on **Reports → One program → Upload VR report** (PDF, PowerPoint
+.pptx, Word .docx or Excel .xlsx; up to 200 MB, set `VR_REPORT_MAX_MB` to change). A program can have several (one
+per assessment round, say); all are listed newest first and anyone signed in can download any of them. Admins can
+delete one.
+
+- Files are checked by their content, not their name (a picture renamed `.pdf` is refused); old `.ppt/.doc/.xls`
+  and macro files (`.pptm`, …) are refused.
+- They are stored in `UPLOAD_DIR/vr-reports/` (outside git, like the other uploads) and only served to signed-in
+  users: the page asks for a one-minute download link, then the browser downloads the file itself.
+- **Nginx**: allow large uploads on the portal's server block, e.g. `client_max_body_size 200m;` (Nginx's default
+  is 1 MB and refuses bigger uploads with "413").
+
+| Method | Path | Who |
+|---|---|---|
+| GET | `/api/vr-reports` | signed in (every active program with its reports) |
+| GET | `/api/programs/:code/vr-reports` | signed in |
+| POST | `/api/programs/:code/vr-reports` | admin (multipart: `file`, `title`, `notes`) |
+| GET | `/api/vr-reports/:id/link` | signed in (a one-minute download link) |
+| GET | `/api/vr-reports/:id/file` | the link, or signed in |
+| DELETE | `/api/vr-reports/:id` | admin |
+
+Test with mock data: `cd backend && npm run test:vr-reports`.
 
 "Done / Not done" is no longer shown or set anywhere (the stored value is kept but unused). Program lists show
 **Assessed** (DVPs with a colour) and **LOP concerns** instead.

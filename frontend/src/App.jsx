@@ -87,7 +87,7 @@ export default function App() {
 
       <main>
         {activeView === "reports" ? (
-          <ReportsView programs={programs} programCode={programCode} />
+          <ReportsView programs={programs} programCode={programCode} user={user} />
         ) : activeView === "catalog" ? (
           <CatalogView programs={programs} />
         ) : activeView === "programs" ? (

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchProgramDvps, fetchReport } from "./api.js";
+import { downloadVrReport, fetchAllVrReports, fetchProgramDvps, fetchReport, fetchVrReports } from "./api.js";
 import { loadReportImage } from "./report/images.js";
 import { ColorTag } from "./shared.jsx";
 import AuthImage from "./AuthImage.jsx";
+import VrReportsPanel from "./VrReportsPanel.jsx";
 
 const SCOPES = [
   ["overall", "All programs"],
@@ -11,9 +12,11 @@ const SCOPES = [
 ];
 const when = (iso) => (iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "");
 
-// Reports: one DVP, one program, or every program. "View summary" shows it here; "Download PowerPoint" builds a
-// .pptx in the browser (pictures included) with the same content.
-export default function ReportsView({ programs, programCode }) {
+// Reports: one DVP, one program, or every program. Two kinds of download:
+//  - VR report: the lab's own report file for the program, uploaded by an admin (listed below the choice)
+//  - Generate PowerPoint: a .pptx built now in the browser from the portal's DVPs and LOP concerns (pictures included)
+// "View summary" shows the generated report's content on the page.
+export default function ReportsView({ programs, programCode, user }) {
   const [scope, setScope] = useState("program");
   const [program, setProgram] = useState(programCode || programs[0]?.code || "");
   const [dvpList, setDvpList] = useState([]);
@@ -23,6 +26,9 @@ export default function ReportsView({ programs, programCode }) {
   const [error, setError] = useState("");
   const pendingDvp = useRef("");                 // a DVP picked from a program summary, chosen once the list is loaded
   const autoView = useRef(false);                // show the summary as soon as the choice is complete
+  const [vr, setVr] = useState(null);            // VR reports for the choice: { key, data }
+  const [vrTick, setVrTick] = useState(0);       // bumped after an upload or delete
+  const isAdmin = user?.role === "ADMIN";
 
   useEffect(() => { if (!program && programs[0]) setProgram(programs[0].code); }, [programs]);
 
@@ -40,6 +46,19 @@ export default function ReportsView({ programs, programCode }) {
     }).catch((e) => { if (live) setError(e.message); });
     return () => { live = false; };
   }, [scope, program]);
+
+  // The VR reports for the choice: one program's (program / DVP), or every program's (overall)
+  const vrKey = scope === "overall" ? "*" : program;
+  useEffect(() => {
+    if (!vrKey) return;
+    let live = true;
+    (vrKey === "*" ? fetchAllVrReports() : fetchVrReports(vrKey))
+      .then((data) => { if (live) setVr({ key: vrKey, data }); })
+      .catch((e) => { if (live) { setVr({ key: vrKey, data: vrKey === "*" ? { programs: [] } : { reports: [] } }); setError(e.message); } });
+    return () => { live = false; };
+  }, [vrKey, vrTick]);
+  const vrData = vr?.key === vrKey ? vr.data : null;
+  const latestVr = scope !== "overall" ? vrData?.reports?.[0] : null;
 
   // A summary on screen belongs to the choice it was made for
   useEffect(() => { setReport(null); setError(""); }, [scope, program, dvpCode]);
@@ -59,7 +78,14 @@ export default function ReportsView({ programs, programCode }) {
     setBusy("");
   };
 
-  const download = async () => {
+  const downloadVr = async () => {
+    if (!latestVr) return;
+    setError(""); setBusy("Starting the download…");
+    try { await downloadVrReport(latestVr.id); } catch (e) { setError(e.message); }
+    setBusy("");
+  };
+
+  const generate = async () => {
     setError(""); setBusy("Collecting the data…");
     try {
       const r = report || (await load());
@@ -100,21 +126,31 @@ export default function ReportsView({ programs, programCode }) {
         )}
         <div className="report-actions">
           <button type="button" className="btn" disabled={!ready || Boolean(busy)} onClick={viewSummary}>View summary</button>
-          <button type="button" className="btn btn-primary" disabled={!ready || Boolean(busy)} onClick={download}>Download PowerPoint</button>
+          {scope !== "overall" && (
+            <button type="button" className="btn" disabled={!latestVr || Boolean(busy)} onClick={downloadVr}
+              title={latestVr ? `${latestVr.title} (${latestVr.kind})` : vrData ? `No VR report has been uploaded for ${program} yet` : "Loading…"}>
+              Download VR report
+            </button>
+          )}
+          <button type="button" className="btn btn-primary" disabled={!ready || Boolean(busy)} onClick={generate}>Generate PowerPoint</button>
         </div>
+        <p className="hint report-legend">
+          {scope === "overall"
+            ? <><strong>VR reports</strong> of each program are listed below. </>
+            : <><strong>Download VR report</strong> gives the newest report uploaded for {program || "the program"}{vrData && !latestVr ? " (none yet)" : ""}. </>}
+          <strong>Generate PowerPoint</strong> makes a deck now from the portal's DVP colours and LOP concerns.
+        </p>
       </section>
       <p className="report-status" role="status" aria-live="polite">{busy}</p>
       {error && <p className="notice notice-error" role="alert">{error}</p>}
 
-      {!report && !busy && !error && (
-        <p className="notice">
-          Choose what the report is for, then <strong>View summary</strong> to see it here, or <strong>Download PowerPoint</strong> for a
-          deck with the figures, the LOP concerns and their pictures.
-        </p>
-      )}
       {report?.scope === "overall" && <OverallSummary report={report} onProgram={(code) => { autoView.current = true; setScope("program"); setProgram(code); }} />}
       {report?.scope === "program" && <ProgramSummary report={report} onDvp={(code) => { autoView.current = true; pendingDvp.current = code; setScope("dvp"); }} />}
       {report?.scope === "dvp" && <DvpSummary report={report} />}
+      {vrKey && (
+        <VrReportsPanel scope={scope} program={program} data={vrData} isAdmin={isAdmin}
+          onChanged={() => setVrTick((n) => n + 1)} onError={setError} />
+      )}
     </>
   );
 }

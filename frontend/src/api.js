@@ -72,3 +72,36 @@ export const fetchReport = (scope, program, dvpCode) => request("GET",
       : `/reports/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(dvpCode)}`);
 export const fetchAdminPrograms = () => request("GET", "/admin/programs");
 export const updateProgram = (code, fields) => request("PATCH", `/admin/programs/${encodeURIComponent(code)}`, fields);
+
+// VR reports: the lab's own report files, uploaded by an admin for each program
+export const fetchVrReports = (program) => request("GET", `/programs/${encodeURIComponent(program)}/vr-reports`);
+export const fetchAllVrReports = () => request("GET", "/vr-reports");
+export const deleteVrReport = (id) => request("DELETE", `/vr-reports/${encodeURIComponent(id)}`);
+
+// Reports can be large, so the upload reports its progress (fetch can't) and the download is left to the browser's
+// own download manager: the page asks for a one-minute link (with the sign-in), then opens it.
+export function uploadVrReport(program, formData, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/programs/${encodeURIComponent(program)}/vr-reports`);
+    const token = getToken();
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+    xhr.onload = () => {
+      let data = {};
+      try { data = JSON.parse(xhr.responseText); } catch { /* not JSON (a proxy error page) */ }
+      if (xhr.status === 401 && token) { setToken(null); onSessionEnded(data.message || "Your session has ended. Sign in again."); }
+      if (xhr.status >= 200 && xhr.status < 300) return resolve(data);
+      reject(new Error(data.message || (xhr.status === 413 ? "The file is too large for the server." : `Upload failed (${xhr.status}).`)));
+    };
+    xhr.onerror = () => reject(new Error("The upload was interrupted. Check the connection and try again."));
+    xhr.send(formData);
+  });
+}
+export async function downloadVrReport(id) {
+  const { url, fileName } = await request("GET", `/vr-reports/${encodeURIComponent(id)}/link`);
+  const a = document.createElement("a");
+  a.href = url; a.download = fileName; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+}
