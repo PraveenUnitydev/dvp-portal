@@ -65,5 +65,10 @@ export function fetchProtectedImage(url) {
   }
   return pictureCache.get(key);
 }
+// Reports: "overall", "program" (code) or "dvp" (code + DVP code)
+export const fetchReport = (scope, program, dvpCode) => request("GET",
+  scope === "overall" ? "/reports/overall"
+    : scope === "program" ? `/reports/programs/${encodeURIComponent(program)}`
+      : `/reports/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(dvpCode)}`);
 export const fetchAdminPrograms = () => request("GET", "/admin/programs");
 export const updateProgram = (code, fields) => request("PATCH", `/admin/programs/${encodeURIComponent(code)}`, fields);

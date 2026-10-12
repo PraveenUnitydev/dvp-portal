@@ -8,7 +8,7 @@ export function Clamp({ text, empty = "—" }) {
 }
 
 export function ColorTag({ color }) {
-  if (!color) return <span className="muted">No colour</span>;
+  if (!color) return <span className="color-tag color-open">Open</span>;
   return <span className={`color-tag color-${color.toLowerCase()}`}>{color}</span>;
 }
 

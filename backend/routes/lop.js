@@ -80,7 +80,7 @@ router.post("/programs/:code/dvps/:dvpCode/lop", requireAuth(), limiter, receive
     if (!ctx) return;
     const fail = (message, status = 400) => res.status(status).json({ message });
     if (ctx.row.color !== "Red") {
-      return fail(`LOP concerns can only be added while ${ctx.number} is marked Red. It is ${ctx.row.color ? `marked ${ctx.row.color}` : "not coloured"} now.`, 409);
+      return fail(`LOP concerns can only be added while ${ctx.number} is marked Red. It is ${ctx.row.color ? `marked ${ctx.row.color}` : "Open"} now.`, 409);
     }
     const text = cleanFields(req.body || {}, {
       details:    { label: "Concern details", max: 4000, required: true },
@@ -149,3 +149,4 @@ router.get("/lop-images/:file", requireAuth(), (req, res) => {
 });
 
 module.exports = router;
+module.exports.helpers = { entryJson };

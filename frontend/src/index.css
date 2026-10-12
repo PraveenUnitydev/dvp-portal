@@ -144,12 +144,12 @@ thead th.col-status { z-index: 3; }
 .cell-text { white-space: pre-line; max-width: 62ch; color: var(--ink); }
 .cell-text.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-.status { display: inline-block; font-size: 12.5px; font-weight: 500; padding: 2px 9px; border: 1px solid var(--rule-strong); border-radius: 999px; color: var(--ink-soft); background: var(--sheet); }
-.status-done { border-color: var(--ink); background: var(--ink); color: #fff; font-weight: 600; }
-.status-color { margin-top: 7px; font-size: 13px; }
+.status-color { font-size: 13px; }
 .color-tag { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
 .color-tag::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
 .color-red { color: var(--red); } .color-blue { color: var(--blue); } .color-green { color: var(--green); }
+.color-open { color: var(--ink-soft); font-weight: 500; }
+.color-open::before { background: transparent; border: 1.5px solid currentColor; }
 .lop-btn { display: inline-block; margin-top: 8px; padding: 3px 10px; border: 1px solid var(--rule-strong); border-radius: var(--r-ctl); background: var(--sheet); color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer; }
 .lop-btn:hover { border-color: var(--ink); background: var(--hover); }
 
@@ -294,3 +294,41 @@ thead th.col-status { z-index: 3; }
 
 .lop-model { grid-template-columns: 1fr; }
 .lop-model dd.pre { white-space: pre-line; }
+
+/* ── Reports ──────────────────────────────────────────── */
+.report-pick { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-panel); padding: 16px 20px 0; margin-bottom: 10px; }
+.report-pick .field { min-width: 200px; }
+.report-pick .field-wide { flex: 1 1 360px; }
+.segmented { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: var(--r-ctl); overflow: hidden; margin-bottom: 16px; }
+.segmented button { border: 0; background: var(--sheet); padding: 8px 16px; cursor: pointer; font-weight: 500; color: var(--ink-soft); min-height: 38px; }
+.segmented button + button { border-left: 1px solid var(--rule-strong); }
+.segmented button[aria-checked="true"] { background: var(--ink); color: #fff; font-weight: 600; }
+.report-actions { display: flex; gap: 8px; margin: 0 0 16px auto; }
+.report-status:empty { display: none; }
+.report-status { margin: 0 0 12px; color: var(--ink-soft); font-weight: 500; }
+.report-card h2 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 12px; }
+.report-card h3 { margin: 22px 0 10px; font-size: 15px; }
+.report-sub { margin: 4px 0 0; color: var(--ink-soft); }
+.report-stamp { margin: 4px 0 16px; display: block; }
+.report-card .details { margin-bottom: 8px; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 8px; }
+.stat { background: var(--canvas); border-radius: var(--r-ctl); padding: 12px 14px; display: grid; gap: 2px; }
+.stat strong { font-size: 24px; line-height: 1.1; }
+.stat span { font-size: 12.5px; color: var(--ink-soft); }
+.stat-red { background: var(--red-bg); } .stat-red strong { color: var(--red); }
+.stat-blue { background: var(--blue-bg); } .stat-blue strong { color: var(--blue); }
+.stat-green { background: var(--green-bg); } .stat-green strong { color: var(--green); }
+.stat-open strong { color: var(--ink-soft); }
+.table-plain { max-height: none; margin-bottom: 18px; }
+.table-plain table { min-width: 760px; }
+.t-red { color: var(--red); font-weight: 600; } .t-blue { color: var(--blue); font-weight: 600; } .t-green { color: var(--green); font-weight: 600; }
+.zone-bars { display: grid; gap: 6px; margin-bottom: 8px; }
+.zone-row { display: grid; grid-template-columns: 170px 1fr 70px; align-items: center; gap: 12px; }
+.zone-name { font-size: 13px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zone-bar { display: flex; height: 22px; border-radius: 4px; overflow: hidden; background: var(--canvas); }
+.seg { display: flex; align-items: center; justify-content: center; min-width: 18px; font-size: 11.5px; font-weight: 600; color: #fff; }
+.seg-red { background: var(--red); } .seg-blue { background: var(--blue); } .seg-green { background: var(--green); }
+.seg-open { background: var(--rule-strong); color: var(--ink); }
+.zone-lop { font-size: 12.5px; color: var(--red); font-weight: 600; }
+.report-card .lop-list { margin-bottom: 18px; }
+.report-card .thumb { cursor: default; }

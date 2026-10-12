@@ -64,11 +64,9 @@ export default function DvpsView({ programCode, user }) {
     );
   }
 
-  const done = dvps.filter((d) => d.completedStatus === "Done").length;
-
   return (
     <>
-      <Overview dvps={dvps} done={done} colorFilter={colorFilter} onColour={(c) => setColorFilter(colorFilter === c ? "All" : c)} />
+      <Overview dvps={dvps} colorFilter={colorFilter} onColour={(c) => setColorFilter(colorFilter === c ? "All" : c)} />
       <div className="flash" role="status" aria-live="polite">{flash}</div>
 
       <div className="filters">
@@ -84,7 +82,7 @@ export default function DvpsView({ programCode, user }) {
         </label>
         <label><span>Colour</span>
           <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
-            <option>All</option>{COLORS.map((c) => <option key={c}>{c}</option>)}<option value="None">No colour</option>
+            <option>All</option>{COLORS.map((c) => <option key={c}>{c}</option>)}<option value="None">Open</option>
           </select>
         </label>
         <label className="search"><span>Search</span>
@@ -112,7 +110,7 @@ export default function DvpsView({ programCode, user }) {
                 <th scope="col" className="col-text">Acceptance criteria</th>
                 <th scope="col" className="col-text">Procedure</th>
                 <th scope="col" className="col-images">Image reference</th>
-                <th scope="col" className="col-status">Status</th>
+                <th scope="col" className="col-status">Colour</th>
                 <th scope="col" className="col-remarks">Remarks</th>
               </tr>
             </thead>
@@ -134,7 +132,6 @@ export default function DvpsView({ programCode, user }) {
                   <td className="col-text"><Clamp text={d.procedure} empty="Not defined yet" /></td>
                   <td className="col-images"><Thumbnails dvp={d} onOpen={(i) => setViewer({ dvp: d, index: i })} /></td>
                   <td className="col-status">
-                    <div className={d.completedStatus === "Done" ? "status status-done" : "status"}>{d.completedStatus}</div>
                     <div className="status-color"><ColorTag color={d.color} /></div>
                     {(d.color === "Red" || d.lopCount > 0) && (
                       <button type="button" className="lop-btn" onClick={() => { setEditTab("lop"); setEditing(d.code); }}
@@ -162,14 +159,13 @@ export default function DvpsView({ programCode, user }) {
 function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClose, onSaved, onOpenImage, imageOpen }) {
   const [tab, setTab] = useState(initialTab || "details");
   const [lopDirty, setLopDirty] = useState(false);
-  const [completedStatus, setCompletedStatus] = useState(dvp.completedStatus);
   const [color, setColor] = useState(dvp.color);
   const [remarks, setRemarks] = useState(dvp.remarks);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const headingRef = useRef(null);
 
-  const dirty = completedStatus !== dvp.completedStatus || color !== dvp.color || remarks.trim() !== (dvp.remarks || "");
+  const dirty = color !== dvp.color || remarks.trim() !== (dvp.remarks || "");
 
   const close = () => { if ((!dirty && !lopDirty) || window.confirm("Discard your unsaved changes?")) onClose(); };
 
@@ -187,7 +183,6 @@ function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClos
   const save = async (e) => {
     e.preventDefault();
     const changes = {};
-    if (completedStatus !== dvp.completedStatus) changes.completedStatus = completedStatus;
     if (color !== dvp.color) changes.color = color;
     if (remarks.trim() !== (dvp.remarks || "")) changes.remarks = remarks.trim();
     setSaving(true); setError("");
@@ -226,17 +221,12 @@ function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClos
           {canEdit && (
             <form className="edit-form" onSubmit={save}>
               <h3>Update for {programCode}</h3>
-              <label className="field"><span>Status</span>
-                <select value={completedStatus} onChange={(e) => setCompletedStatus(e.target.value)}>
-                  <option>Not done</option><option>Done</option>
-                </select>
-              </label>
               <fieldset className="field color-choice">
                 <legend>Colour</legend>
                 {[...COLORS, null].map((c) => (
                   <label key={c || "none"} className={`swatch ${c ? `swatch-${c.toLowerCase()}` : "swatch-none"}`}>
                     <input type="radio" name="color" checked={color === c} onChange={() => setColor(c)} />
-                    <span>{c || "No colour"}</span>
+                    <span>{c || "Open"}</span>
                   </label>
                 ))}
               </fieldset>
@@ -278,20 +268,21 @@ function EditPanel({ dvp, programCode, canEdit, initialTab, onLopChanged, onClos
   );
 }
 
-// The program at a glance: progress, how many DVPs carry each colour (select one to filter the table), and LOP concerns
-function Overview({ dvps, done, colorFilter, onColour }) {
+// The program at a glance: how many DVPs are assessed (have a colour), how many carry each colour (select one to
+// filter the table), and how many LOP concerns have been raised
+function Overview({ dvps, colorFilter, onColour }) {
   const total = dvps.length;
-  const pct = total ? Math.round((done / total) * 100) : 0;
   const count = (c) => dvps.filter((d) => (c === "None" ? !d.color : d.color === c)).length;
+  const assessed = total - count("None");
+  const pct = total ? Math.round((assessed / total) * 100) : 0;
   const lopEntries = dvps.reduce((n, d) => n + (d.lopCount || 0), 0);
-  const lopDvps = dvps.filter((d) => d.lopCount > 0).length;
-  const chips = [["Red", "c-red", "Red"], ["Blue", "c-blue", "Blue"], ["Green", "c-green", "Green"], ["None", "", "No colour"]];
+  const chips = [["Red", "c-red", "Red"], ["Blue", "c-blue", "Blue"], ["Green", "c-green", "Green"], ["None", "", "Open"]];
   return (
     <section className="overview" aria-label="Program overview">
       <div className="ov-block">
-        <p className="ov-label">Progress</p>
-        <p className="ov-value">{done} of {total} done<small>{pct}%</small></p>
-        <div className="ov-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="DVPs done"><span style={{ width: `${pct}%` }} /></div>
+        <p className="ov-label">Assessed (colour given)</p>
+        <p className="ov-value">{assessed} of {total}<small>{pct}%</small></p>
+        <div className="ov-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="DVPs assessed"><span style={{ width: `${pct}%` }} /></div>
       </div>
       <div className="ov-block">
         <p className="ov-label">Colour (select one to show only those DVPs)</p>
@@ -305,7 +296,7 @@ function Overview({ dvps, done, colorFilter, onColour }) {
       </div>
       <div className="ov-block">
         <p className="ov-label">LOP concerns</p>
-        <p className="ov-value">{lopEntries === 0 ? "None raised" : lopEntries}{lopEntries > 0 && <small>on {lopDvps} DVP{lopDvps === 1 ? "" : "s"}</small>}</p>
+        <p className="ov-value">{lopEntries === 0 ? "None raised" : lopEntries}</p>
       </div>
     </section>
   );

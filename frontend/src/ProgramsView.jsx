@@ -125,7 +125,7 @@ export default function ProgramsView({ onCreated, onManage }) {
       <div className="table-wrap">
         <table className="programs-table">
           <thead>
-            <tr><th scope="col">Program</th><th scope="col">Name</th><th scope="col">Description</th><th scope="col">DVPs</th><th scope="col">Done</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr>
+            <tr><th scope="col">Program</th><th scope="col">Name</th><th scope="col">Description</th><th scope="col">DVPs</th><th scope="col">Assessed</th><th scope="col">LOP concerns</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr>
           </thead>
           <tbody>
             {shown.map((p) => (editCode === p.code ? (
@@ -133,7 +133,7 @@ export default function ProgramsView({ onCreated, onManage }) {
                 <td className="col-num"><strong>{p.code}</strong></td>
                 <td><input aria-label={`Name of ${p.code}`} value={editName} maxLength={60} placeholder={p.code} onChange={(e) => setEditName(e.target.value)} /></td>
                 <td><input aria-label={`Description of ${p.code}`} value={editDesc} maxLength={300} onChange={(e) => setEditDesc(e.target.value)} /></td>
-                <td>{p.dvpCount}</td><td>{p.doneCount} of {p.dvpCount}</td>
+                <td>{p.dvpCount}</td><td>{p.assessedCount ?? 0} of {p.dvpCount}</td><td>{p.lopCount ?? 0}</td>
                 <td><div className="cell-actions">
                   <button type="button" className="link-btn" onClick={() => saveEdit(p)}>Save</button>
                   <button type="button" className="link-btn" onClick={() => { setEditCode(null); setRowError(""); }}>Cancel</button>
@@ -145,7 +145,8 @@ export default function ProgramsView({ onCreated, onManage }) {
                 <td>{p.name && p.name !== p.code ? p.name : <span className="muted">—</span>}</td>
                 <td>{p.description || <span className="muted">—</span>}</td>
                 <td>{p.dvpCount}</td>
-                <td>{p.doneCount} of {p.dvpCount}</td>
+                <td>{p.assessedCount ?? 0} of {p.dvpCount}</td>
+                <td>{p.lopCount ?? 0}</td>
                 <td><div className="cell-actions">
                   {p.active ? (
                     <>

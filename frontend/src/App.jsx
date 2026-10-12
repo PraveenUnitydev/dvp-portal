@@ -5,8 +5,10 @@ import DvpsView from "./DvpsView.jsx";
 import AdminView from "./AdminView.jsx";
 import CatalogView from "./CatalogView.jsx";
 import ProgramsView from "./ProgramsView.jsx";
+import ReportsView from "./ReportsView.jsx";
 
 const ADMIN_VIEWS = ["manage", "catalog", "programs"];
+const ALL_VIEWS = ["dvps", "reports", ...ADMIN_VIEWS];
 
 function readParam(name) { return new URLSearchParams(window.location.search).get(name) || ""; }
 function writeParams(params) {
@@ -21,7 +23,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [programs, setPrograms] = useState([]);
   const [programCode, setProgramCode] = useState(() => readParam("program"));
-  const [view, setView] = useState(() => (ADMIN_VIEWS.includes(readParam("view")) ? readParam("view") : "dvps"));
+  const [view, setView] = useState(() => (ALL_VIEWS.includes(readParam("view")) ? readParam("view") : "dvps"));
   const unsavedRef = useRef(false); // set by the admin view while it has unsaved changes
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export default function App() {
   useEffect(() => { if (user) loadPrograms(); }, [user]);
 
   // A plain user can't open the admin view, even from a bookmarked link
-  const activeView = ADMIN_VIEWS.includes(view) && user?.role === "ADMIN" ? view : "dvps";
+  const activeView = view === "reports" || (ADMIN_VIEWS.includes(view) && user?.role === "ADMIN") ? view : "dvps";
   const usesProgram = activeView === "dvps" || activeView === "manage";   // the catalog and programs screens don't depend on one
   useEffect(() => { if (user) writeParams({ program: usesProgram ? programCode : "", view: activeView === "dvps" ? "" : activeView }); }, [user, programCode, activeView, usesProgram]);
 
@@ -73,17 +75,20 @@ export default function App() {
         </div>
       </header>
 
-      {user.role === "ADMIN" && (
-        <nav className="tabs" aria-label="Sections">
-          <button type="button" aria-current={activeView === "dvps" ? "page" : undefined} onClick={() => changeView("dvps")}>DVPs</button>
+      <nav className="tabs" aria-label="Sections">
+        <button type="button" aria-current={activeView === "dvps" ? "page" : undefined} onClick={() => changeView("dvps")}>DVPs</button>
+        <button type="button" aria-current={activeView === "reports" ? "page" : undefined} onClick={() => changeView("reports")}>Reports</button>
+        {user.role === "ADMIN" && (<>
           <button type="button" aria-current={activeView === "manage" ? "page" : undefined} onClick={() => changeView("manage")}>Manage program DVPs</button>
           <button type="button" aria-current={activeView === "catalog" ? "page" : undefined} onClick={() => changeView("catalog")}>DVP catalog</button>
           <button type="button" aria-current={activeView === "programs" ? "page" : undefined} onClick={() => changeView("programs")}>Programs</button>
-        </nav>
-      )}
+        </>)}
+      </nav>
 
       <main>
-        {activeView === "catalog" ? (
+        {activeView === "reports" ? (
+          <ReportsView programs={programs} programCode={programCode} />
+        ) : activeView === "catalog" ? (
           <CatalogView programs={programs} />
         ) : activeView === "programs" ? (
           <ProgramsView onCreated={loadPrograms}

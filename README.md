@@ -11,7 +11,7 @@ acceptance criteria and procedure.
 **Users** pick a program and see the DVPs that apply to it: DVP no., component,
 evaluation, zone, ergonomic area, CAS, acceptance criteria, procedure, image
 reference, status and remarks. Clicking a DVP number opens its details, where a
-user can set the **status** (Done / Not done), **colour** (Red / Blue / Green)
+user can set the **colour** (Red / Blue / Green, or Open when not assessed yet)
 and **remarks**. Changes apply only to the selected program.
 
 **Admins** can do everything users can, plus choose which catalog DVPs apply to
@@ -78,7 +78,7 @@ scripts/import_dvp_sheet.py   sheet → seed JSON converter
 | POST | `/api/auth/login` | anyone (rate limited; 5 wrong passwords lock the account for 15 min) |
 | GET | `/api/programs` | signed in |
 | GET | `/api/programs/:code/dvps` | signed in |
-| PATCH | `/api/programs/:code/dvps/:dvpCode` `{completedStatus, color, remarks}` | ADMIN, USER |
+| PATCH | `/api/programs/:code/dvps/:dvpCode` `{color, remarks}` | ADMIN, USER |
 | GET | `/api/admin/programs/:code/catalog` | ADMIN |
 | PUT | `/api/admin/programs/:code/applicability` `{codes: [...]}` | ADMIN |
 | GET | `/api/admin/dvps` | ADMIN - the whole base catalog, with how many programs use each DVP |
@@ -203,3 +203,31 @@ in-cell pictures and are not imported.
 Local username/password accounts for now. The rest of the app only relies on a
 user's name and role, so this can be swapped for Azure AD SSO (as in VRSP)
 without changing the pages or the data.
+
+## Reports
+
+**Reports** (a tab for everyone) makes a report for **all programs**, **one program** or **one DVP**:
+
+- **View summary** shows it on the page: colour counts (Red / Blue / Green / Open), how many DVPs are assessed,
+  LOP concerns; per zone for a program; the LOP history with pictures for a DVP. Rows link to the narrower report.
+- **Download PowerPoint** builds a `.pptx` in the browser with the same content:
+  - *All programs*: summary with a chart per program, a table of all programs, then each program's LOP concerns.
+  - *One program*: summary with a chart per zone, the DVPs with LOP concerns (each with its details, reference
+    images and one slide per LOP entry with its pictures), then every DVP with its colour and remarks.
+  - *One DVP*: details and reference images, procedure, one slide per LOP entry (oldest first) with its pictures.
+
+Pictures are converted to JPEG in the browser (PowerPoint can't show WebP). A picture that can't be loaded is left
+out; the report is still made.
+
+| Method | Path | Who |
+|---|---|---|
+| GET | `/api/reports/overall` | signed in |
+| GET | `/api/reports/programs/:code` | signed in |
+| GET | `/api/reports/programs/:code/dvps/:dvpCode` | signed in |
+
+Tests with mock data (no MongoDB needed): `cd backend && npm run test:report` runs the report API on the real routes
+with in-memory data from the 135-DVP catalog and writes sample reports; then `cd frontend && npm run test:unit` builds
+the three PowerPoint reports from those samples into `frontend/tests/out/`.
+
+"Done / Not done" is no longer shown or set anywhere (the stored value is kept but unused). Program lists show
+**Assessed** (DVPs with a colour) and **LOP concerns** instead.

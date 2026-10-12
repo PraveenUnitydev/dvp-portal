@@ -7,6 +7,7 @@ const Dvp = require("../models/Dvp");
 const Program = require("../models/Program");
 const ProgramDvp = require("../models/ProgramDvp");
 const { requireAuth } = require("../middleware/auth");
+const { programCounts } = require("../utils/reportData");
 const { UPLOAD_IMAGE_DIR } = require("../config");
 const { cleanText, cleanFields, sniffImage } = require("../utils/validation");
 const { findProgram, testNumber, isApplicable, DVP_CODE, PROGRAM_CODE } = require("./programs").helpers;
@@ -295,7 +296,7 @@ router.post("/programs", writeLimiter, async (req, res) => {
       dvpCount = rows.length;
     }
     console.log(`Program added: ${code} by ${req.user.name}${source ? ` (DVPs copied from ${source.code}: ${dvpCount})` : ""}`);
-    res.status(201).json({ code: program.code, name: program.name, description: program.description, dvpCount, doneCount: 0 });
+    res.status(201).json({ code: program.code, name: program.name, description: program.description, dvpCount, assessedCount: 0, lopCount: 0 });
   } catch (err) {
     console.error("POST /admin/programs failed:", err.message);
     res.status(500).json({ message: "Could not add the program." });
@@ -438,7 +439,7 @@ async function programRow(p) {
   return {
     code: p.code, name: p.name, description: p.description || "", active: p.active !== false, createdBy: p.createdBy || "",
     dvpCount: await ProgramDvp.countDocuments({ program: p._id, ...isApplicable }),
-    doneCount: await ProgramDvp.countDocuments({ program: p._id, ...isApplicable, completedStatus: "Done" }),
+    ...(await programCounts(p._id)),
   };
 }
 

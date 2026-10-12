@@ -4,6 +4,7 @@ const Dvp = require("../models/Dvp");
 const ProgramDvp = require("../models/ProgramDvp");
 const LopEntry = require("../models/LopEntry");
 const { requireAuth } = require("../middleware/auth");
+const { programCounts } = require("../utils/reportData");
 
 const router = express.Router();
 const PROGRAM_CODE = /^[A-Z0-9]{2,12}$/;
@@ -60,7 +61,7 @@ router.get("/", requireAuth(), async (req, res) => {
       name: p.name,
       description: p.description || "",
       dvpCount:  await ProgramDvp.countDocuments({ program: p._id, ...isApplicable }),
-      doneCount: await ProgramDvp.countDocuments({ program: p._id, ...isApplicable, completedStatus: "Done" }),
+      ...(await programCounts(p._id)),
     }))));
   } catch (err) {
     console.error("GET /programs failed:", err.message);
@@ -139,4 +140,4 @@ router.patch("/:code/dvps/:dvpCode", requireAuth(["ADMIN", "USER"]), async (req,
 });
 
 module.exports = router;
-module.exports.helpers = { findProgram, dvpNumber, testNumber, isApplicable, PROGRAM_CODE, DVP_CODE };
+module.exports.helpers = { findProgram, dvpNumber, testNumber, isApplicable, toRow, PROGRAM_CODE, DVP_CODE };

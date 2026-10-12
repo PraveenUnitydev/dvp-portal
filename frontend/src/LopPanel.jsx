@@ -116,7 +116,7 @@ export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
         </form>
       ) : (
         <p className="notice">
-          LOP concerns can only be raised while {data.dvpNumber} is marked Red{data.color ? ` (it is marked ${data.color} now)` : " (it has no colour yet)"}.
+          LOP concerns can only be raised while {data.dvpNumber} is marked Red{data.color ? ` (it is marked ${data.color} now)` : " (it is Open now)"}.
           {entries.length > 0 ? " The history below stays available." : ""}
         </p>
       )}

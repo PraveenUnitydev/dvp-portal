@@ -11,3 +11,5 @@ __pycache__/
 
 # Images uploaded through the portal (kept out of git so deploys never touch them)
 backend/uploads/
+backend/tests/out/
+frontend/tests/out/
