@@ -204,6 +204,13 @@ Local username/password accounts for now. The rest of the app only relies on a
 user's name and role, so this can be swapped for Azure AD SSO (as in VRSP)
 without changing the pages or the data.
 
+## VR capable
+
+The DVP view shows how many of the program's DVPs are **VR capable**, from the catalog's *VR capability*
+(Yes / Partial / No, set in the master sheet or under DVP catalog): an overview block with the count and a chip per
+value (select one to show only those DVPs), a **VR capable** filter, a column, and a line in each DVP's details.
+Marks are neutral (filled = Yes, half = Partial, hollow = No) because colour on that screen always means a DVP's colour.
+
 ## Observation images
 
 Each DVP in a program has an **Observation images** column next to *Image reference*: supporting pictures taken

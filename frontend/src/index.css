@@ -377,3 +377,23 @@ thead th.col-status { z-index: 3; }
 .viewer-meta { margin: 0; padding: 8px 16px; border-top: 1px solid var(--rule); color: var(--ink-soft); font-size: 13px; text-align: center; }
 .viewer-empty { margin: 24px; }
 .viewer .img-loading { display: block; width: min(900px, 80vw); height: 60vh; }
+
+/* VR capable: neutral marks (colour on this screen always means a DVP's colour). Yes = filled, Partial = half, No = hollow */
+.overview { grid-template-columns: minmax(200px, 1.1fr) minmax(300px, 1.8fr) minmax(230px, 1.3fr) minmax(140px, 0.8fr); }
+.vr-cap { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.vr-cap::before, .ov-chip.vr-chip::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink); box-sizing: border-box; background: transparent; }
+.vr-cap-yes::before, .ov-chip.vr-cap-yes::before { background: var(--ink); }
+.vr-cap-partial::before, .ov-chip.vr-cap-partial::before { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
+.vr-cap-no { color: var(--ink-soft); }
+.vr-cap-no::before, .ov-chip.vr-cap-no::before { border-color: var(--ink-faint); }
+.col-vr { width: 96px; }
+@media (max-width: 1280px) {
+  .overview { grid-template-columns: 1fr 1fr; }
+  .ov-block:nth-child(3) { border-left: 0; }
+  .ov-block:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+@media (max-width: 980px) {
+  .overview { grid-template-columns: 1fr; }
+  .ov-block + .ov-block { border-left: 0; border-top: 1px solid var(--rule); }
+}
+.ov-vr { margin-top: 8px; }

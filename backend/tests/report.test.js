@@ -73,6 +73,10 @@ const token = jwt.sign({ id: String(admin._id) }, process.env.JWT_SECRET);
     check("dvp: details + full LOP history", one.status === 200 && one.body.dvp.dvpNumber === `U171-${code}` && one.body.dvp.lop.length === 3 && one.body.dvp.color === "Red");
     check("dvp: bad code 400, not in program 404", (await get("/api/reports/programs/U171/dvps/xx")).status === 400 && (await get(`/api/reports/programs/S302/dvps/${Dvp.rows[20].code}`)).status === 404);
 
+    const rows = (await get("/api/programs/U171/dvps")).body.dvps;
+    const want = Object.fromEntries(["Yes", "Partial", "No"].map((v) => [v, Dvp.rows.filter((d) => (d.vrCapability || "No") === v).length]));
+    check("DVP list: VR capable from the catalog (Yes / Partial / No)", ["Yes", "Partial", "No"].every((v) => rows.filter((d) => d.vrCapability === v).length === want[v]) && want.Yes > 0 && want.Partial > 0, JSON.stringify(want));
+
     const list = await get("/api/programs");
     const lu = list.body.find((p) => p.code === "U171");
     check("program list: assessed and LOP counts (no 'done')", lu.assessedCount === n171 - u.counts.open && lu.lopCount === 4 && !("doneCount" in lu), JSON.stringify(lu));

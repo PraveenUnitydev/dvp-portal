@@ -45,6 +45,7 @@ function toRow(program, d, r, lopCount = 0) {
     fullName: d.fullName,
     zone: d.zone,
     ergonomicsArea: d.ergonomicsArea,
+    vrCapability: d.vrCapability || "No",   // from the catalog: can this DVP be assessed in VR (Yes / Partial / No)
     cas: d.cas,
     requirement: d.requirement,
     acceptanceCriteria: d.acceptanceCriteria,

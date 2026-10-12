@@ -5,6 +5,12 @@ import { COLORS, Clamp, ColorTag, ImageViewer, Thumbnails, useZones } from "./sh
 import LopPanel from "./LopPanel.jsx";
 
 const MAX_REMARKS = 2000;
+// VR capable (from the DVP catalog). Shown with neutral marks: colours on this screen always mean a DVP's colour.
+export const VR_VALUES = ["Yes", "Partial", "No"];
+export function VrTag({ value }) {
+  const v = VR_VALUES.includes(value) ? value : "No";
+  return <span className={`vr-cap vr-cap-${v.toLowerCase()}`}>{v}</span>;
+}
 
 export default function DvpsView({ programCode, user }) {
   const [data, setData] = useState(null);
@@ -13,6 +19,7 @@ export default function DvpsView({ programCode, user }) {
   const [zone, setZone] = useState("All");
   const [area, setArea] = useState("All");
   const [colorFilter, setColorFilter] = useState("All");
+  const [vrFilter, setVrFilter] = useState("All");
   const [query, setQuery] = useState("");
   const [viewer, setViewer] = useState(null);
   const [editing, setEditing] = useState(null); // dvp code
@@ -37,10 +44,11 @@ export default function DvpsView({ programCode, user }) {
       (zone === "All" || d.zone.name === zone) &&
       (area === "All" || d.ergonomicsArea === area) &&
       (colorFilter === "All" || (colorFilter === "None" ? !d.color : d.color === colorFilter)) &&
+      (vrFilter === "All" || d.vrCapability === vrFilter) &&
       (!q || [d.dvpNumber, d.evaluationParameter, d.component, d.fullName, d.remarks].some((v) => (v || "").toLowerCase().includes(q))));
-  }, [dvps, zone, area, colorFilter, query]);
+  }, [dvps, zone, area, colorFilter, vrFilter, query]);
 
-  const filtersActive = zone !== "All" || area !== "All" || colorFilter !== "All" || query.trim() !== "";
+  const filtersActive = zone !== "All" || area !== "All" || colorFilter !== "All" || vrFilter !== "All" || query.trim() !== "";
   const editingDvp = dvps.find((d) => d.code === editing) || null;
   const viewerDvp = viewer && dvps.find((d) => d.code === viewer.code);
   const openViewer = (d, index, kind = "reference") => setViewer({ code: d.code, index, kind });
@@ -73,7 +81,8 @@ export default function DvpsView({ programCode, user }) {
 
   return (
     <>
-      <Overview dvps={dvps} colorFilter={colorFilter} onColour={(c) => setColorFilter(colorFilter === c ? "All" : c)} />
+      <Overview dvps={dvps} colorFilter={colorFilter} onColour={(c) => setColorFilter(colorFilter === c ? "All" : c)}
+        vrFilter={vrFilter} onVr={(v) => setVrFilter(vrFilter === v ? "All" : v)} />
       <div className="flash" role="status" aria-live="polite">{flash}</div>
 
       <div className="filters">
@@ -92,11 +101,16 @@ export default function DvpsView({ programCode, user }) {
             <option>All</option>{COLORS.map((c) => <option key={c}>{c}</option>)}<option value="None">Open</option>
           </select>
         </label>
+        <label><span>VR capable</span>
+          <select value={vrFilter} onChange={(e) => setVrFilter(e.target.value)}>
+            <option>All</option>{VR_VALUES.map((v) => <option key={v}>{v}</option>)}
+          </select>
+        </label>
         <label className="search"><span>Search</span>
           <input type="search" value={query} placeholder="DVP number, component, evaluation or remarks" onChange={(e) => setQuery(e.target.value)} />
         </label>
         {filtersActive && (
-          <button type="button" className="link-btn" onClick={() => { setZone("All"); setArea("All"); setColorFilter("All"); setQuery(""); }}>Clear filters</button>
+          <button type="button" className="link-btn" onClick={() => { setZone("All"); setArea("All"); setColorFilter("All"); setVrFilter("All"); setQuery(""); }}>Clear filters</button>
         )}
         <span className="count" aria-live="polite">Showing {visible.length} of {dvps.length}</span>
       </div>
@@ -113,6 +127,7 @@ export default function DvpsView({ programCode, user }) {
                 <th scope="col" className="col-eval">Evaluation</th>
                 <th scope="col" className="col-zone">Zone</th>
                 <th scope="col" className="col-area">Ergonomic area</th>
+                <th scope="col" className="col-vr">VR capable</th>
                 <th scope="col" className="col-cas">CAS</th>
                 <th scope="col" className="col-text">Acceptance criteria</th>
                 <th scope="col" className="col-text">Procedure</th>
@@ -135,6 +150,7 @@ export default function DvpsView({ programCode, user }) {
                   <td className="col-eval">{d.evaluationParameter}</td>
                   <td className="col-zone">{d.zone.name}</td>
                   <td className="col-area">{d.ergonomicsArea}</td>
+                  <td className="col-vr"><VrTag value={d.vrCapability} /></td>
                   <td className="col-cas">{d.cas}</td>
                   <td className="col-text"><Clamp text={d.acceptanceCriteria} empty="Not defined yet" /></td>
                   <td className="col-text"><Clamp text={d.procedure} empty="Not defined yet" /></td>
@@ -271,6 +287,7 @@ function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, 
           <dl className="details">
             <dt>Zone</dt><dd>{dvp.zone.name}</dd>
             <dt>Ergonomic area</dt><dd>{dvp.ergonomicsArea || "—"}</dd>
+            <dt>VR capable</dt><dd><VrTag value={dvp.vrCapability} /></dd>
             <dt>CAS</dt><dd>{dvp.cas || "—"}</dd>
             <dt>Acceptance criteria</dt><dd className="pre">{dvp.acceptanceCriteria || "Not defined yet"}</dd>
             <dt>Procedure</dt><dd className="pre">{dvp.procedure || "Not defined yet"}</dd>
@@ -301,12 +318,13 @@ function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, 
 
 // The program at a glance: how many DVPs are assessed (have a colour), how many carry each colour (select one to
 // filter the table), and how many LOP concerns have been raised
-function Overview({ dvps, colorFilter, onColour }) {
+function Overview({ dvps, colorFilter, onColour, vrFilter, onVr }) {
   const total = dvps.length;
   const count = (c) => dvps.filter((d) => (c === "None" ? !d.color : d.color === c)).length;
   const assessed = total - count("None");
   const pct = total ? Math.round((assessed / total) * 100) : 0;
   const lopEntries = dvps.reduce((n, d) => n + (d.lopCount || 0), 0);
+  const vrCount = (v) => dvps.filter((d) => (d.vrCapability || "No") === v).length;
   const chips = [["Red", "c-red", "Red"], ["Blue", "c-blue", "Blue"], ["Green", "c-green", "Green"], ["None", "", "Open"]];
   return (
     <section className="overview" aria-label="Program overview">
@@ -321,6 +339,18 @@ function Overview({ dvps, colorFilter, onColour }) {
           {chips.map(([value, cls, label]) => (
             <button key={value} type="button" className={`ov-chip ${cls}`} aria-pressed={colorFilter === value} onClick={() => onColour(value)}>
               {label} <strong>{count(value)}</strong>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="ov-block">
+        <p className="ov-label">VR capable DVPs</p>
+        <p className="ov-value">{vrCount("Yes")} of {total}{vrCount("Partial") ? <small>+ {vrCount("Partial")} partial</small> : null}</p>
+        <div className="ov-colours ov-vr" aria-label="VR capable (select one to show only those DVPs)">
+          {VR_VALUES.map((v) => (
+            <button key={v} type="button" className={`ov-chip vr-chip vr-cap-${v.toLowerCase()}`} aria-pressed={vrFilter === v} onClick={() => onVr(v)}
+              title={`Show only DVPs that are ${v === "Yes" ? "VR capable" : v === "Partial" ? "partly VR capable" : "not VR capable"}`}>
+              {v} <strong>{vrCount(v)}</strong>
             </button>
           ))}
         </div>
