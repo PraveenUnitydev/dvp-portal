@@ -6,11 +6,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import { buildDeck, deckFileName, cut } from "../src/report/deck.js";
 
 const require = createRequire(import.meta.url);
 const PptxGenJS = require("pptxgenjs");
-const here = path.dirname(new URL(import.meta.url).pathname);
+// fileURLToPath, not URL.pathname: on Windows .pathname is "/D:/..." (and %20 for spaces), which is not a usable path
+const here = path.dirname(fileURLToPath(import.meta.url));
 const fixtures = path.join(here, "..", "..", "backend", "tests", "out");
 const out = path.join(here, "out");
 fs.mkdirSync(out, { recursive: true });
