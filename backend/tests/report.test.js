@@ -9,6 +9,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const http = require("http");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 
@@ -29,10 +30,18 @@ const token = jwt.sign({ id: String(admin._id) }, process.env.JWT_SECRET);
 (async () => {
   const server = app.listen(0);
   const port = server.address().port;
-  const get = async (p, auth = true) => {
-    const r = await fetch(`http://127.0.0.1:${port}${p}`, { headers: auth ? { Authorization: `Bearer ${token}` } : {} });
-    return { status: r.status, body: await r.json().catch(() => null) };
-  };
+  // Plain node:http with no keep-alive: nothing is left open when the test ends. (fetch keeps pooled sockets open,
+  // and exiting while Windows is still closing them crashes Node with "UV_HANDLE_CLOSING ... src\\win\\async.c".)
+  const get = (p, auth = true) => new Promise((resolve, reject) => {
+    const req = http.get({ host: "127.0.0.1", port, path: p, agent: false,
+      headers: { Connection: "close", ...(auth ? { Authorization: `Bearer ${token}` } : {}) } }, (res) => {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", (c) => (data += c));
+      res.on("end", () => { let body = null; try { body = JSON.parse(data); } catch { /* not JSON */ } resolve({ status: res.statusCode, body }); });
+    });
+    req.on("error", reject);
+  });
   try {
     const { countsOf, zonesOf, totalsOf } = require("../utils/reportData");
     const c = countsOf([{ color: "Red", lopCount: 2 }, { color: "Blue" }, { color: null, lopCount: 1 }, {}]);
@@ -78,8 +87,10 @@ const token = jwt.sign({ id: String(admin._id) }, process.env.JWT_SECRET);
   } catch (e) {
     fail++; console.log("FAIL exception", e);
   } finally {
-    server.close();
     console.log(`\nPassed ${pass} | Failed ${fail}`);
-    process.exit(fail ? 1 : 0);
+    // Let Node finish closing the server and its sockets by itself instead of process.exit() (see `get` above)
+    process.exitCode = fail ? 1 : 0;
+    server.closeAllConnections?.();
+    server.close();
   }
 })();
