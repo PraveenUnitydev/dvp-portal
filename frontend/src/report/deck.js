@@ -286,12 +286,12 @@ async function dvpDeck(PptxGenJS, report, loadImage, progress) {
   return pres;
 }
 
-async function programDeck(PptxGenJS, report, loadImage, progress) {
+async function programDeck(PptxGenJS, report, loadImage, progress, obsPerDvp = 6) {
   const { program, counts, zones, dvps } = report;
   const pres = newDeck(PptxGenJS, `DVP report ${program.code}`);
   const lopDvps = dvps.filter((d) => d.lopCount > 0);
-  const OBS_PER_DVP = 6;          // keeps a program deck a sensible size; the DVP report has every image
-  const obsDvps = dvps.filter((d) => (d.observationImages || []).length > 0);
+  const OBS_PER_DVP = obsPerDvp;  // an admin setting: keeps a program deck a sensible size; the DVP report has every image
+  const obsDvps = OBS_PER_DVP > 0 ? dvps.filter((d) => (d.observationImages || []).length > 0) : [];
   const urls = [
     ...obsDvps.flatMap((d) => d.observationImages.slice(0, OBS_PER_DVP).map((o) => o.url)),
     ...lopDvps.flatMap((d) => (d.referenceImages || []).slice(0, 2)),
@@ -328,7 +328,7 @@ async function programDeck(PptxGenJS, report, loadImage, progress) {
     ], { title: "DVPs with LOP concerns", kicker: `PROGRAM ${program.code}`, perPage: 9 });
     for (const d of lopDvps) {
       dvpDetailSlide(pres, d, pics, `PROGRAM ${program.code}  ·  LOP CONCERNS`);
-      observationSlides(pres, d, pics, `PROGRAM ${program.code}  ·  LOP CONCERNS`, OBS_PER_DVP);
+      if (OBS_PER_DVP > 0) observationSlides(pres, d, pics, `PROGRAM ${program.code}  ·  LOP CONCERNS`, OBS_PER_DVP);
       [...d.lop].sort((a, b) => a.seq - b.seq).forEach((e) => lopEntrySlide(pres, d, e, pics, `PROGRAM ${program.code}  ·  LOP HISTORY`));
     }
   }
@@ -393,9 +393,9 @@ async function overallDeck(PptxGenJS, report, loadImage, progress) {
   return pres;
 }
 
-export async function buildDeck(PptxGenJS, report, { loadImage, onProgress } = {}) {
+export async function buildDeck(PptxGenJS, report, { loadImage, onProgress, observationsPerDvp = 6 } = {}) {
   if (!report || !report.scope) throw new Error("No report data.");
   if (report.scope === "dvp") return dvpDeck(PptxGenJS, report, loadImage, onProgress);
-  if (report.scope === "program") return programDeck(PptxGenJS, report, loadImage, onProgress);
+  if (report.scope === "program") return programDeck(PptxGenJS, report, loadImage, onProgress, observationsPerDvp);
   return overallDeck(PptxGenJS, report, loadImage, onProgress);
 }

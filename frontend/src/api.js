@@ -48,6 +48,8 @@ export const fetchCatalogDvps = () => request("GET", "/admin/dvps");
 export const createDvp = (formData) => send("POST", "/admin/dvps", { form: formData });
 export const createProgram = (fields) => request("POST", "/admin/programs", fields);
 export const updateDvp = (code, formData) => send("PATCH", `/admin/dvps/${encodeURIComponent(code)}`, { form: formData });
+// The quick VR capability change (a catalog value: applies to every program)
+export const setVrCapability = (code, vrCapability) => request("PUT", `/admin/dvps/${encodeURIComponent(code)}/vr-capability`, { vrCapability });
 export const deleteDvp = (code) => request("DELETE", `/admin/dvps/${encodeURIComponent(code)}`);
 // LOP concerns: an append-only history per DVP per program
 export const fetchLop = (program, code) => request("GET", `/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(code)}/lop`);
@@ -76,6 +78,9 @@ export const fetchReport = (scope, program, dvpCode) => request("GET",
   scope === "overall" ? "/reports/overall"
     : scope === "program" ? `/reports/programs/${encodeURIComponent(program)}`
       : `/reports/programs/${encodeURIComponent(program)}/dvps/${encodeURIComponent(dvpCode)}`);
+// Admin settings: everyone can read them (the screens need the limits); only admins can save
+export const fetchSettings = () => request("GET", "/settings");
+export const saveSettings = (values) => request("PUT", "/admin/settings", { values });
 export const fetchAdminPrograms = () => request("GET", "/admin/programs");
 export const updateProgram = (code, fields) => request("PATCH", `/admin/programs/${encodeURIComponent(code)}`, fields);
 

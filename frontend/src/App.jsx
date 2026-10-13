@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMe, fetchPrograms, getToken, setToken, setSessionEndedHandler } from "./api.js";
+import { fetchMe, fetchPrograms, fetchSettings, getToken, setToken, setSessionEndedHandler } from "./api.js";
+import { DEFAULT_SETTINGS, SettingsContext } from "./settings.js";
+import SettingsView from "./SettingsView.jsx";
 import Login from "./Login.jsx";
 import DvpsView from "./DvpsView.jsx";
 import AdminView from "./AdminView.jsx";
@@ -7,7 +9,7 @@ import CatalogView from "./CatalogView.jsx";
 import ProgramsView from "./ProgramsView.jsx";
 import ReportsView from "./ReportsView.jsx";
 
-const ADMIN_VIEWS = ["manage", "catalog", "programs"];
+const ADMIN_VIEWS = ["manage", "catalog", "programs", "settings"];
 const ALL_VIEWS = ["dvps", "reports", ...ADMIN_VIEWS];
 
 function readParam(name) { return new URLSearchParams(window.location.search).get(name) || ""; }
@@ -25,6 +27,7 @@ export default function App() {
   const [programCode, setProgramCode] = useState(() => readParam("program"));
   const [view, setView] = useState(() => (ALL_VIEWS.includes(readParam("view")) ? readParam("view") : "dvps"));
   const unsavedRef = useRef(false); // set by the admin view while it has unsaved changes
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
   useEffect(() => {
     setSessionEndedHandler((message) => { setUser(null); setNotice(message); });
@@ -37,6 +40,9 @@ export default function App() {
     .then((list) => { setPrograms(list); setProgramCode((c) => (c && !list.some((p) => p.code === c) ? "" : c)); })
     .catch(() => {});
   useEffect(() => { if (user) loadPrograms(); }, [user]);
+  // Settings: loaded at sign-in and whenever a section is opened, so a change an admin made shows without a reload
+  const loadSettings = () => fetchSettings().then((r) => setSettings({ ...DEFAULT_SETTINGS, ...r.values })).catch(() => {});
+  useEffect(() => { if (user) loadSettings(); }, [user, view]);
 
   // A plain user can't open the admin view, even from a bookmarked link
   const activeView = view === "reports" || (ADMIN_VIEWS.includes(view) && user?.role === "ADMIN") ? view : "dvps";
@@ -82,11 +88,15 @@ export default function App() {
           <button type="button" aria-current={activeView === "manage" ? "page" : undefined} onClick={() => changeView("manage")}>Manage program DVPs</button>
           <button type="button" aria-current={activeView === "catalog" ? "page" : undefined} onClick={() => changeView("catalog")}>DVP catalog</button>
           <button type="button" aria-current={activeView === "programs" ? "page" : undefined} onClick={() => changeView("programs")}>Programs</button>
+          <button type="button" aria-current={activeView === "settings" ? "page" : undefined} onClick={() => changeView("settings")}>Settings</button>
         </>)}
       </nav>
 
+      <SettingsContext.Provider value={settings}>
       <main>
-        {activeView === "reports" ? (
+        {activeView === "settings" ? (
+          <SettingsView onSaved={(values) => setSettings({ ...DEFAULT_SETTINGS, ...values })} />
+        ) : activeView === "reports" ? (
           <ReportsView programs={programs} programCode={programCode} user={user} />
         ) : activeView === "catalog" ? (
           <CatalogView programs={programs} />
@@ -104,6 +114,7 @@ export default function App() {
           <DvpsView key={programCode} programCode={programCode} user={user} />
         )}
       </main>
+      </SettingsContext.Provider>
     </div>
   );
 }

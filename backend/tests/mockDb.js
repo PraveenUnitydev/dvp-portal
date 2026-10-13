@@ -51,9 +51,14 @@ function model(rows) {
     findOne: (f) => query(rows.filter((r) => matches(r, f)), true),
     findById: (id) => query(rows.filter((r) => same(r._id, id)), true),
     countDocuments: async (f) => rows.filter((r) => matches(r, f)).length,
-    create: async (doc) => { const row = { _id: oid(), createdAt: new Date(Date.now() + rows.length), ...doc }; rows.push(row); return row; },
-    findOneAndUpdate: (f, u) => {
-      const row = rows.find((r) => matches(r, f));
+    // like a Mongoose document: has toObject()
+    create: async (doc) => { const row = { _id: oid(), createdAt: new Date(Date.now() + rows.length), ...doc }; rows.push(row); return Object.defineProperty({ ...row }, "toObject", { value: () => ({ ...row }) }); },
+    findOneAndUpdate: (f, u, opts = {}) => {
+      let row = rows.find((r) => matches(r, f));
+      if (!row && opts.upsert) {
+        row = { _id: oid(), createdAt: new Date(), ...Object.fromEntries(Object.entries(f).filter(([, v]) => typeof v !== "object" || v?._bsontype)) };
+        rows.push(row);
+      }
       if (row) applyUpdate(row, u);
       return query(row ? [row] : [], true);
     },
@@ -98,7 +103,8 @@ const User = model([admin, maya]);
 
 const VrReport = model([]);
 
-const stub = { Dvp, Program, ProgramDvp, LopEntry, User, VrReport };
+const Setting = model([]);
+const stub = { Dvp, Program, ProgramDvp, LopEntry, User, VrReport, Setting };
 module.exports = { ...stub, U171, S302, OLD, admin, maya, red171, same, dvpByCode };
 const origLoad = Module._load;
 Module._load = function (request, parent, isMain) {

@@ -10,6 +10,7 @@ const LopEntry = require("../models/LopEntry");
 const { requireAuth } = require("../middleware/auth");
 const { UPLOAD_LOP_DIR } = require("../config");
 const { cleanFields, sniffImage } = require("../utils/validation");
+const settings = require("../utils/settings");
 
 // Entries from before the single field showed CAS and CAD separately; present them as one text
 const legacyModel = (cas, cad) => [cas && `CAS version: ${cas}`, cad && `CAD model version: ${cad}`].filter(Boolean).join("\n");
@@ -18,8 +19,10 @@ const { findProgram, dvpNumber, isApplicable, DVP_CODE } = require("./programs")
 // LOP concerns: raised against a DVP that is marked Red in a program, kept as an append-only history.
 // Any signed-in person may raise one (and read them); nobody can edit or delete an entry.
 const router = express.Router();
-const MAX_IMAGES = 4;
-const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
+// Pictures per entry and their size: admin settings (utils/settings.js). The form reader only enforces the upper
+// bound a setting can have; the current setting is checked on each entry.
+const HARD_MAX_IMAGES = settings.DEFS.lopMaxImages.max;
+const HARD_MAX_BYTES = settings.DEFS.lopMaxMb.max * 1024 * 1024;
 const MIME = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" };
 
 // Per person, not per address: a whole office can share one address
@@ -29,12 +32,12 @@ const limiter = rateLimit({
   message: { message: "Too many LOP entries in a short time. Wait a few minutes and try again." },
 });
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_IMAGE_BYTES, files: MAX_IMAGES, fields: 20, fieldSize: 64 * 1024, parts: 30 } });
-const receiveForm = (req, res, next) => upload.array("images", MAX_IMAGES)(req, res, (err) => {
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: HARD_MAX_BYTES, files: HARD_MAX_IMAGES, fields: 20, fieldSize: 64 * 1024, parts: 30 } });
+const receiveForm = (req, res, next) => upload.array("images", HARD_MAX_IMAGES)(req, res, (err) => {
   if (!err) return next();
   res.status(400).json({
-    message: err.code === "LIMIT_FILE_SIZE" ? `Each image can be at most ${MAX_IMAGE_BYTES / 1024 / 1024} MB.`
-      : err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE" ? `You can add at most ${MAX_IMAGES} images.`
+    message: err.code === "LIMIT_FILE_SIZE" ? `Each image can be at most ${HARD_MAX_BYTES / 1024 / 1024} MB.`
+      : err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE" ? `You can add at most ${HARD_MAX_IMAGES} images.`
       : "The form could not be read. Check it and try again.",
   });
 });
@@ -76,9 +79,15 @@ router.get("/programs/:code/dvps/:dvpCode/lop", requireAuth(), async (req, res) 
 router.post("/programs/:code/dvps/:dvpCode/lop", requireAuth(), limiter, receiveForm, async (req, res) => {
   const written = [];
   try {
+    const s = await settings.get();
+    const fail = (message, status = 400) => res.status(status).json({ message });
+    if (req.user.role !== "ADMIN" && !s.usersCanRaiseLop) return fail("Only admins can raise LOP concerns at the moment (see Settings).", 403);
     const ctx = await loadRow(req, res);
     if (!ctx) return;
-    const fail = (message, status = 400) => res.status(status).json({ message });
+    const pics = req.files || [];
+    if (pics.length > s.lopMaxImages) return fail(s.lopMaxImages === 0 ? "Pictures can't be added to LOP entries at the moment (see Settings)." : `You can add at most ${s.lopMaxImages} pictures to an entry.`);
+    const big = pics.find((f) => f.size > s.lopMaxMb * 1024 * 1024);
+    if (big) return fail(`"${safeName(big.originalname)}" is over ${s.lopMaxMb} MB, the most allowed for a LOP picture.`);
     if (ctx.row.color !== "Red") {
       return fail(`LOP concerns can only be added while ${ctx.number} is marked Red. It is ${ctx.row.color ? `marked ${ctx.row.color}` : "Open"} now.`, 409);
     }
@@ -141,7 +150,7 @@ router.post("/programs/:code/dvps/:dvpCode/lop", requireAuth(), limiter, receive
 // GET /api/lop-images/:file - signed-in people only
 router.get("/lop-images/:file", requireAuth(), (req, res) => {
   const file = String(req.params.file || "");
-  if (!/^[a-f0-9]{24}-[1-4]\.(png|jpg|webp)$/.test(file)) return res.status(404).json({ message: "Not found." });
+  if (!/^[a-f0-9]{24}-\d{1,2}\.(png|jpg|webp)$/.test(file)) return res.status(404).json({ message: "Not found." });
   const full = path.join(UPLOAD_LOP_DIR, file);
   if (!fs.existsSync(full)) return res.status(404).json({ message: "Not found." });
   res.set({ "Content-Type": MIME[file.split(".").pop()], "X-Content-Type-Options": "nosniff", "Cache-Control": "private, max-age=86400" });

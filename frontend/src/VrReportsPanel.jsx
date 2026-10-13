@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { deleteVrReport, downloadVrReport, uploadVrReport } from "./api.js";
+import { useSettings } from "./settings.js";
 
 const when = (iso) => (iso ? new Date(iso).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "");
 export const fileSize = (n) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
@@ -85,6 +86,7 @@ function ReportLine({ r, more = 0 }) {
 }
 
 function UploadForm({ program, onUploaded }) {
+  const maxMb = useSettings().vrReportMaxMb;
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState("");
@@ -98,6 +100,7 @@ function UploadForm({ program, onUploaded }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!file) { setError("Choose the report file."); return; }
+    if (file.size > maxMb * 1024 * 1024) { setError(`The file is ${fileSize(file.size)}; the most allowed is ${maxMb} MB (see Settings).`); return; }
     setError(""); setDone(""); setProgress(0);
     const form = new FormData();
     form.append("title", title.trim());
@@ -126,7 +129,7 @@ function UploadForm({ program, onUploaded }) {
         <label className="field wide"><span>File *</span>
           <input ref={input} type="file" accept={ACCEPT} disabled={uploading}
             onChange={(e) => { const f = e.target.files?.[0] || null; setFile(f); if (f && !title) setTitle(f.name.replace(/\.[^.]+$/, "").slice(0, 120)); }} />
-          <small className="hint">PDF, PowerPoint (.pptx), Word (.docx) or Excel (.xlsx).{file ? ` ${fileSize(file.size)}.` : ""}</small>
+          <small className="hint">PDF, PowerPoint (.pptx), Word (.docx) or Excel (.xlsx), up to {maxMb} MB.{file ? ` This one: ${fileSize(file.size)}.` : ""}</small>
         </label>
         <label className="field"><span>Title</span>
           <input value={title} maxLength={120} disabled={uploading} placeholder="e.g. Round 2 VR assessment" onChange={(e) => setTitle(e.target.value)} />

@@ -85,3 +85,12 @@ deckTest("no pictures available: report still made", async () => {
   const pres = await buildDeck(PptxGenJS, load("program"), { loadImage: async () => { throw new Error("offline"); } });
   assert.ok(pres.slides.length > 3);
 });
+
+deckTest("program report: the observation-images setting (0 leaves them out, 2 caps each DVP)", async () => {
+  const report = load("program");
+  const base = (await buildDeck(PptxGenJS, report, { loadImage: async () => null, observationsPerDvp: 0 })).slides.length;
+  const two = (await buildDeck(PptxGenJS, report, { loadImage: async () => null, observationsPerDvp: 2 })).slides.length;
+  const withObs = report.dvps.filter((d) => d.observationImages.length > 0);
+  // with 2 per DVP: one slide per DVP that has images, plus a "more in the portal" slide for those with more than 2
+  assert.equal(two - base, withObs.length + withObs.filter((d) => d.observationImages.length > 2).length);
+});

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchProgramDvps, updateProgramDvp } from "./api.js";
+import { fetchProgramDvps, setVrCapability, updateProgramDvp } from "./api.js";
 import ObservationImages from "./ObservationImages.jsx";
 import { COLORS, Clamp, ColorTag, ImageViewer, Thumbnails, useZones } from "./shared.jsx";
 import LopPanel from "./LopPanel.jsx";
+import { permissions, useSettings } from "./settings.js";
 
 const MAX_REMARKS = 2000;
 // VR capable (from the DVP catalog). Shown with neutral marks: colours on this screen always mean a DVP's colour.
@@ -53,7 +54,8 @@ export default function DvpsView({ programCode, user }) {
   const viewerDvp = viewer && dvps.find((d) => d.code === viewer.code);
   const openViewer = (d, index, kind = "reference") => setViewer({ code: d.code, index, kind });
   const openObservations = (d) => { setEditTab("observations"); setEditing(d.code); };
-  const canEdit = user.role === "ADMIN" || user.role === "USER";
+  const can = permissions(user, useSettings());
+  const canEdit = can.editDvps;
 
   // The LOP tab reports its count so the table's "LOP (n)" button stays right without reloading
   const onLopChanged = (code, count, last) => setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === code ? { ...d, lopCount: count, lastLopAt: last } : d)) }));
@@ -142,7 +144,7 @@ export default function DvpsView({ programCode, user }) {
                 <tr key={d.code} className="row">
                   <td className={`col-num ${d.color ? `stripe-${d.color.toLowerCase()}` : ""}`}>
                     <button type="button" className="row-toggle" onClick={() => { setEditTab("details"); setEditing(d.code); }}
-                      title={canEdit ? "Open details and update status" : "Open details"}>
+                      title={canEdit ? "Open details and update colour" : "Open details"}>
                       {d.dvpNumber}
                     </button>
                   </td>
@@ -157,7 +159,7 @@ export default function DvpsView({ programCode, user }) {
                   <td className="col-images"><Thumbnails dvp={d} onOpen={(i) => openViewer(d, i)} /></td>
                   <td className="col-images">
                     <Thumbnails dvp={d} kind="observation" empty="None" onOpen={(i) => openViewer(d, i, "observation")} />
-                    {canEdit && (
+                    {(can.addObservations || (d.observationImages || []).length > 0 && can.removeOwnObservations) && (
                       <button type="button" className="obs-add-btn" onClick={() => openObservations(d)}
                         title={`Add or remove observation images for ${d.dvpNumber}`}>
                         {(d.observationImages || []).length ? "Manage" : "+ Add images"}
@@ -166,7 +168,7 @@ export default function DvpsView({ programCode, user }) {
                   </td>
                   <td className="col-status">
                     <div className="status-color"><ColorTag color={d.color} /></div>
-                    {(d.color === "Red" || d.lopCount > 0) && (
+                    {((d.color === "Red" && can.raiseLop) || d.lopCount > 0) && (
                       <button type="button" className="lop-btn" onClick={() => { setEditTab("lop"); setEditing(d.code); }}
                         title={d.lopCount ? "Open the LOP history" : "Raise a LOP concern"}>{d.lopCount ? `LOP (${d.lopCount})` : "Raise LOP"}</button>
                     )}
@@ -258,7 +260,7 @@ function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, 
 
         <div className="drawer-body" role="tabpanel" aria-labelledby={tab === "lop" ? "tab-lop" : "tab-details"}>
           {tab === "lop" ? (
-            <LopPanel programCode={programCode} dvp={dvp} onChanged={onLopChanged} onDirty={setLopDirty} />
+            <LopPanel programCode={programCode} dvp={dvp} user={user} onChanged={onLopChanged} onDirty={setLopDirty} />
           ) : (<>
           {canEdit && (
             <form className="edit-form" onSubmit={save}>
@@ -287,7 +289,8 @@ function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, 
           <dl className="details">
             <dt>Zone</dt><dd>{dvp.zone.name}</dd>
             <dt>Ergonomic area</dt><dd>{dvp.ergonomicsArea || "—"}</dd>
-            <dt>VR capable</dt><dd><VrTag value={dvp.vrCapability} /></dd>
+            <dt>VR capable</dt>
+            <dd>{user?.role === "ADMIN" ? <VrEditor dvp={dvp} onChanged={onRowChanged} /> : <VrTag value={dvp.vrCapability} />}</dd>
             <dt>CAS</dt><dd>{dvp.cas || "—"}</dd>
             <dt>Acceptance criteria</dt><dd className="pre">{dvp.acceptanceCriteria || "Not defined yet"}</dd>
             <dt>Procedure</dt><dd className="pre">{dvp.procedure || "Not defined yet"}</dd>
@@ -305,7 +308,7 @@ function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, 
             </dd>
             <dt id="obs-heading" ref={obsRef} tabIndex={-1}>Observation images</dt>
             <dd>
-              <ObservationImages programCode={programCode} dvp={dvp} canEdit={canEdit} user={user}
+              <ObservationImages programCode={programCode} dvp={dvp} user={user}
                 onChanged={onRowChanged} onOpen={(i) => onOpenImage(i, "observation")} onBusy={setObsBusy} />
             </dd>
           </dl>
@@ -360,5 +363,35 @@ function Overview({ dvps, colorFilter, onColour, vrFilter, onVr }) {
         <p className="ov-value">{lopEntries === 0 ? "None raised" : lopEntries}</p>
       </div>
     </section>
+  );
+}
+
+// Admins: change a DVP's VR capability right here. It is a catalog value, so the change applies to every program.
+function VrEditor({ dvp, onChanged }) {
+  const [busy, setBusy] = useState("");
+  const [note, setNote] = useState("");
+  const [error, setError] = useState("");
+  const choose = async (v) => {
+    if (v === dvp.vrCapability || busy) return;
+    setBusy(v); setError(""); setNote("");
+    try {
+      const r = await setVrCapability(dvp.code, v);
+      onChanged({ code: dvp.code, vrCapability: r.vrCapability });
+      setNote(`Saved: ${r.vrCapability}. Applies to every program.`);
+    } catch (err) { setError(err.message); }
+    setBusy("");
+  };
+  return (
+    <div className="vr-edit">
+      <div className="segmented segmented-sm" role="radiogroup" aria-label={`VR capability of ${dvp.code}`}>
+        {VR_VALUES.map((v) => (
+          <button key={v} type="button" role="radio" aria-checked={dvp.vrCapability === v} disabled={Boolean(busy)} onClick={() => choose(v)}>
+            <VrTag value={v} />{busy === v ? "…" : ""}
+          </button>
+        ))}
+      </div>
+      <small className="hint" role="status">{note || "Catalog setting: a change applies to every program."}</small>
+      {error && <p className="notice notice-error" role="alert">{error}</p>}
+    </div>
   );
 }

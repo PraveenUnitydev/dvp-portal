@@ -4,6 +4,7 @@ import { loadReportImage } from "./report/images.js";
 import { ColorTag } from "./shared.jsx";
 import AuthImage from "./AuthImage.jsx";
 import VrReportsPanel from "./VrReportsPanel.jsx";
+import { useSettings } from "./settings.js";
 
 const SCOPES = [
   ["overall", "All programs"],
@@ -29,6 +30,7 @@ export default function ReportsView({ programs, programCode, user }) {
   const [vr, setVr] = useState(null);            // VR reports for the choice: { key, data }
   const [vrTick, setVrTick] = useState(0);       // bumped after an upload or delete
   const isAdmin = user?.role === "ADMIN";
+  const settings = useSettings();
 
   useEffect(() => { if (!program && programs[0]) setProgram(programs[0].code); }, [programs]);
 
@@ -91,7 +93,7 @@ export default function ReportsView({ programs, programCode, user }) {
       const r = report || (await load());
       setBusy("Preparing the slides…");
       const [{ default: PptxGenJS }, { buildDeck, deckFileName }] = await Promise.all([import("pptxgenjs"), import("./report/deck.js")]);
-      const pres = await buildDeck(PptxGenJS, r, { loadImage: loadReportImage, onProgress: setBusy });
+      const pres = await buildDeck(PptxGenJS, r, { loadImage: loadReportImage, onProgress: setBusy, observationsPerDvp: settings.reportObservationsPerDvp });
       setBusy("Saving the file…");
       await pres.writeFile({ fileName: deckFileName(r) });
     } catch (e) {

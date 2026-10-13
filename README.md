@@ -207,9 +207,38 @@ without changing the pages or the data.
 ## VR capable
 
 The DVP view shows how many of the program's DVPs are **VR capable**, from the catalog's *VR capability*
-(Yes / Partial / No, set in the master sheet or under DVP catalog): an overview block with the count and a chip per
-value (select one to show only those DVPs), a **VR capable** filter, a column, and a line in each DVP's details.
-Marks are neutral (filled = Yes, half = Partial, hollow = No) because colour on that screen always means a DVP's colour.
+(Yes / Partial / No): an overview block with the count and a chip per value (select one to show only those DVPs),
+a **VR capable** filter, a column, and a line in each DVP's details. Marks are neutral (filled = Yes, half = Partial,
+hollow = No) because colour on that screen always means a DVP's colour.
+
+**Admins change it** in a DVP's details panel (Yes / Partial / No; saved at once), or in the DVP catalog's edit
+form. It is a catalog value, so the change applies to every program, and it is marked as edited in the portal so a
+re-import of the master sheet keeps it. API: `PUT /api/admin/dvps/:code/vr-capability { vrCapability }` (admin).
+
+## Settings (admin)
+
+**Settings** (admin tab) holds the portal's rules and limits. They apply straight away, with no restart; the server
+checks every one on each request, and the screens use them to show the right buttons and limits.
+
+| Setting | Default | Range |
+|---|---|---|
+| Users can change a DVP's colour and remarks | On | |
+| Users can raise LOP concerns | On | |
+| Users can add observation images | On | |
+| Users can remove observation images they added | On | |
+| Most observation images per DVP (per program) | 12 (`OBSERVATION_MAX_IMAGES`) | 1–50 |
+| Largest observation image | 5 MB | 1–20 |
+| Most pictures per LOP entry | 4 | 0–10 |
+| Largest LOP picture | 3 MB | 1–20 |
+| Largest VR report file | 200 MB (`VR_REPORT_MAX_MB`) | 1–2000 |
+| Observation images per DVP in the program PowerPoint | 6 | 0–24 |
+
+Admins can always do everything. Only values that differ from the default are stored (one `settings` document),
+so a setting nobody changed follows the default. A stored value that is out of range is ignored. To add a setting,
+add it to `backend/utils/settings.js` (and its default to `frontend/src/settings.js`): the Settings page is built
+from the server's list. API: `GET /api/settings` (signed in), `PUT /api/admin/settings { values }` (admin).
+
+Tests with mock data: `cd backend && npm run test:settings`.
 
 ## Observation images
 

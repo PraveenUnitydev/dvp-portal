@@ -414,6 +414,25 @@ router.patch("/dvps/:code", writeLimiter, receiveForm,
 
 // DELETE /api/admin/dvps/:code - only for a DVP no program has ever used. One that programs have used
 // can't be deleted (that would erase their status and remarks): switch it off in those programs instead.
+// PUT /api/admin/dvps/:code/vr-capability  { vrCapability: "Yes" | "Partial" | "No" }
+// The quick change from the DVP view. It is a catalog value, so it applies to every program. Marked as edited in the
+// portal, so a re-import of the master sheet leaves it as the admin set it.
+router.put("/dvps/:code/vr-capability", writeLimiter, async (req, res) => {
+  try {
+    const code = String(req.params.code || "").toUpperCase();
+    if (!DVP_CODE.test(code)) return res.status(400).json({ message: "Invalid DVP code." });
+    const value = String(req.body?.vrCapability ?? "");
+    if (!VR_VALUES.includes(value)) return res.status(400).json({ message: "VR capability must be Yes, Partial or No." });
+    const dvp = await Dvp.findOneAndUpdate({ code }, { $set: { vrCapability: value, editedBy: req.user.name, editedAt: new Date() } }, { new: true, runValidators: true }).lean();
+    if (!dvp) return res.status(404).json({ message: `${code} was not found.` });
+    console.log(`VR capability of ${code} set to ${value} by ${req.user.name}`);
+    res.json({ code: dvp.code, vrCapability: dvp.vrCapability, editedBy: dvp.editedBy, editedAt: dvp.editedAt });
+  } catch (err) {
+    console.error("PUT /admin/dvps/:code/vr-capability failed:", err.message);
+    res.status(500).json({ message: "Could not change the VR capability." });
+  }
+});
+
 router.delete("/dvps/:code", writeLimiter, async (req, res) => {
   try {
     const code = String(req.params.code || "").toUpperCase();

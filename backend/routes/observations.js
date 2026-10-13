@@ -10,14 +10,16 @@ const LopEntry = require("../models/LopEntry");
 const { requireAuth } = require("../middleware/auth");
 const { UPLOAD_OBSERVATION_DIR } = require("../config");
 const { sniffImage } = require("../utils/validation");
+const settings = require("../utils/settings");
 const { findProgram, dvpNumber, isApplicable, toRow, DVP_CODE } = require("./programs").helpers;
 
 // Observation images: supporting pictures for one DVP in one program, added during the assessment. Anyone who can
 // update a DVP can add them; a picture can be removed by the person who added it, or by an admin.
 const router = express.Router();
-const MAX_PER_DVP = Number(process.env.OBSERVATION_MAX_IMAGES) || 12;
+// How many per DVP and how big: admin settings (utils/settings.js). The form reader only enforces the upper bound
+// a setting can have; the current setting is checked on each upload.
 const MAX_PER_UPLOAD = 6;
-const MAX_IMAGE_MB = 5;
+const HARD_MAX_MB = settings.DEFS.observationMaxMb.max;
 const MIME = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" };
 const FILE = /^[a-f0-9]{24}-\d{1,2}\.(png|jpg|webp)$/;
 
@@ -28,11 +30,11 @@ const limiter = rateLimit({
   message: { message: "Too many image changes in a short time. Wait a few minutes and try again." },
 });
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_IMAGE_MB * 1024 * 1024, files: MAX_PER_UPLOAD, fields: 5, parts: MAX_PER_UPLOAD + 5 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: HARD_MAX_MB * 1024 * 1024, files: MAX_PER_UPLOAD, fields: 5, parts: MAX_PER_UPLOAD + 5 } });
 const receiveImages = (req, res, next) => upload.array("images", MAX_PER_UPLOAD)(req, res, (err) => {
   if (!err) return next();
   res.status(400).json({
-    message: err.code === "LIMIT_FILE_SIZE" ? `Each image can be at most ${MAX_IMAGE_MB} MB.`
+    message: err.code === "LIMIT_FILE_SIZE" ? `Each image can be at most ${HARD_MAX_MB} MB.`
       : err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE" ? `Add at most ${MAX_PER_UPLOAD} images at a time.`
       : "The images could not be read. Try again.",
   });
@@ -56,10 +58,17 @@ const rowJson = async (ctx, row) => toRow(ctx.program, ctx.dvp, row, await LopEn
 router.post("/programs/:code/dvps/:dvpCode/observations", requireAuth(["ADMIN", "USER"]), limiter, receiveImages, async (req, res) => {
   let written = [];
   try {
+    const s = await settings.get();
+    if (req.user.role !== "ADMIN" && !s.usersCanAddObservations) {
+      return res.status(403).json({ message: "Only admins can add observation images at the moment (see Settings)." });
+    }
+    const MAX_PER_DVP = s.observationMaxPerDvp;
     const ctx = await loadRow(req, res);
     if (!ctx) return;
     const files = req.files || [];
     if (files.length === 0) return res.status(400).json({ message: "Choose at least one image." });
+    const big = files.find((f) => f.size > s.observationMaxMb * 1024 * 1024);
+    if (big) return res.status(400).json({ message: `"${safeName(big.originalname)}" is over ${s.observationMaxMb} MB, the most allowed for an observation image.` });
     const kinds = [];
     for (const f of files) {
       const kind = sniffImage(f.buffer);
@@ -106,8 +115,13 @@ router.delete("/programs/:code/dvps/:dvpCode/observations/:file", requireAuth(["
     const file = String(req.params.file || "");
     const item = FILE.test(file) && (ctx.row.observations || []).find((o) => o.file === file);
     if (!item) return res.status(404).json({ message: "This image was not found. It may have been removed already." });
-    if (req.user.role !== "ADMIN" && String(item.uploadedBy?.userId) !== String(req.user._id)) {
-      return res.status(403).json({ message: `Only ${item.uploadedBy?.name || "the person who added it"} or an admin can remove this image.` });
+    if (req.user.role !== "ADMIN") {
+      if (String(item.uploadedBy?.userId) !== String(req.user._id)) {
+        return res.status(403).json({ message: `Only ${item.uploadedBy?.name || "the person who added it"} or an admin can remove this image.` });
+      }
+      if (!(await settings.get()).usersCanRemoveOwnObservations) {
+        return res.status(403).json({ message: "Only admins can remove observation images at the moment (see Settings)." });
+      }
     }
     const row = await ProgramDvp.findOneAndUpdate(
       { _id: ctx.row._id, "observations.file": file },
@@ -134,4 +148,4 @@ router.get("/observation-images/:file", requireAuth(), (req, res) => {
 });
 
 module.exports = router;
-module.exports.limits = { MAX_PER_DVP, MAX_PER_UPLOAD, MAX_IMAGE_MB };
+module.exports.limits = { MAX_PER_UPLOAD, HARD_MAX_MB };

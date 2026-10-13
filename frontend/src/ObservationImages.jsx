@@ -3,16 +3,18 @@ import { addObservations, removeObservation } from "./api.js";
 import { sniffImageFile } from "./imageType.js";
 import { shortDate } from "./shared.jsx";
 import AuthImage from "./AuthImage.jsx";
+import { permissions, useSettings } from "./settings.js";
 
-// Same limits as the server (routes/observations.js); the server has the final say
-const MAX_PER_DVP = 12;
-const MAX_PER_UPLOAD = 6;
-const MAX_IMAGE_MB = 5;
+const MAX_PER_UPLOAD = 6;          // per request, as on the server; more are sent in several requests
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 // Observation images of one DVP in one program: supporting pictures from the assessment. Choosing files uploads them
 // straight away. A picture can be removed by whoever added it, or by an admin.
-export default function ObservationImages({ programCode, dvp, canEdit, user, onChanged, onOpen, onBusy }) {
+export default function ObservationImages({ programCode, dvp, user, onChanged, onOpen, onBusy }) {
+  const settings = useSettings();
+  const can = permissions(user, settings);
+  const MAX_PER_DVP = settings.observationMaxPerDvp;
+  const MAX_IMAGE_MB = settings.observationMaxMb;
   const images = dvp.observationImages || [];
   const [busy, setBusy] = useState("");          // "" | "upload" | file name being removed
   const [error, setError] = useState("");
@@ -62,7 +64,7 @@ export default function ObservationImages({ programCode, dvp, canEdit, user, onC
     try { onChanged(await removeObservation(programCode, dvp.code, o.file)); setFlash("Image removed."); } catch (err) { setError(err.message); }
     setBusy("");
   };
-  const mayRemove = (o) => canEdit && (user?.role === "ADMIN" || (o.uploadedBy.username && o.uploadedBy.username === user?.username));
+  const mayRemove = (o) => can.admin || (can.removeOwnObservations && o.uploadedBy.username && o.uploadedBy.username === user?.username);
 
   return (
     <div className="obs">
@@ -83,7 +85,7 @@ export default function ObservationImages({ programCode, dvp, canEdit, user, onC
         </ul>
       )}
 
-      {canEdit && (
+      {can.addObservations && (
         <div className={`obs-drop ${dragging ? "obs-drop-on" : ""}`}
           onDragOver={(e) => { if (room > 0 && !busy) { e.preventDefault(); setDragging(true); } }}
           onDragLeave={() => setDragging(false)}
@@ -93,7 +95,7 @@ export default function ObservationImages({ programCode, dvp, canEdit, user, onC
             {busy === "upload" ? "Uploading…" : "Add observation images"}
           </button>
           <small className="hint">
-            {room <= 0 ? `The most allowed (${MAX_PER_DVP}) have been added. Remove one to add another.`
+            {room <= 0 ? `The most allowed (${MAX_PER_DVP}) have been added.${images.some(mayRemove) ? " Remove one to add another." : ""}`
               : `PNG, JPEG or WebP, up to ${MAX_IMAGE_MB} MB each. You can also drop them here. ${images.length} of ${MAX_PER_DVP} used.`}
           </small>
         </div>

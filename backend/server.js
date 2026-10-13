@@ -46,6 +46,7 @@ app.use("/api", require("./routes/lop"));
 app.use("/api", require("./routes/observations"));
 app.use("/api/reports", require("./routes/reports"));
 app.use("/api", require("./routes/vrReports"));
+app.use("/api", require("./routes/settings"));
 app.use("/api", (req, res) => res.status(404).json({ message: "Not found." }));
 
 // DVP reference images (from the master sheet). Names change whenever the

@@ -5,6 +5,7 @@ const ProgramDvp = require("../models/ProgramDvp");
 const LopEntry = require("../models/LopEntry");
 const { requireAuth } = require("../middleware/auth");
 const { programCounts } = require("../utils/reportData");
+const settings = require("../utils/settings");
 
 const router = express.Router();
 const PROGRAM_CODE = /^[A-Z0-9]{2,12}$/;
@@ -105,6 +106,9 @@ router.get("/:code/dvps", requireAuth(), async (req, res) => {
 // colour and remarks for one DVP. Only affects the selected program.
 router.patch("/:code/dvps/:dvpCode", requireAuth(["ADMIN", "USER"]), async (req, res) => {
   try {
+    if (req.user.role !== "ADMIN" && !(await settings.get()).usersCanEditDvps) {
+      return res.status(403).json({ message: "Only admins can change DVPs at the moment (see Settings)." });
+    }
     const program = await findProgram(req, res);
     if (!program) return;
     const dvpCode = String(req.params.dvpCode || "").toUpperCase();

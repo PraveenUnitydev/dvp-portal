@@ -2,9 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { addLop, fetchLop } from "./api.js";
 import { sniffImageFile } from "./imageType.js";
 import AuthImage from "./AuthImage.jsx";
+import { permissions, useSettings } from "./settings.js";
 
-const MAX_IMAGES = 4;
-const MAX_IMAGE_MB = 3;
 const MAX_DETAILS = 4000;
 const MAX_MODEL = 300;
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -16,7 +15,11 @@ const sizeText = (bytes) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(byt
 // The LOP tab for one DVP in one program: raise a concern or add an update, and read the full history.
 // Entries are only ever added. An update never replaces an earlier one, so the history shows who raised what,
 // when, and against which CAS / CAD model.
-export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
+export default function LopPanel({ programCode, dvp, user, onChanged, onDirty }) {
+  const settings = useSettings();
+  const canRaise = permissions(user, settings).raiseLop;
+  const MAX_IMAGES = settings.lopMaxImages;     // admin settings; the server checks them too
+  const MAX_IMAGE_MB = settings.lopMaxMb;
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -82,7 +85,9 @@ export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
     <div className="lop">
       <p className="flash" role="status">{flash}</p>
 
-      {data.enabled ? (
+      {data.enabled && !canRaise ? (
+        <p className="notice">Only admins can raise LOP concerns at the moment. The history below is available to everyone.</p>
+      ) : data.enabled ? (
         <form className="edit-form" onSubmit={submit} noValidate>
           <h3>{first ? "Raise a LOP concern" : "Add a LOP update"}</h3>
           {!first && <p className="hint">This is added to the history below. Earlier entries are never changed or replaced.</p>}
@@ -94,10 +99,12 @@ export default function LopPanel({ programCode, dvp, onChanged, onDirty }) {
             <input value={modelDetails} maxLength={MAX_MODEL} onChange={(e) => setModelDetails(e.target.value)} placeholder="e.g. CAS v2.4, CAD model A12" />
             <small className="hint">The CAS or CAD model and version this concern was found on. Text can't start with =, + , - or @ (spreadsheets read these as formulas).</small>
           </label>
+          {MAX_IMAGES > 0 && (
           <label className="field"><span>Pictures of the concern (up to {MAX_IMAGES}; PNG, JPEG or WebP, {MAX_IMAGE_MB} MB each)</span>
             <input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={files.length >= MAX_IMAGES}
               onChange={(e) => { const chosen = Array.from(e.target.files); e.target.value = ""; addFiles(chosen); }} />
           </label>
+          )}
           {files.length > 0 && (
             <ul className="file-list">
               {files.map((f, i) => (

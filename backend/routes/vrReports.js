@@ -11,11 +11,14 @@ const { requireAuth } = require("../middleware/auth");
 const { UPLOAD_VR_REPORT_DIR } = require("../config");
 const { cleanText, sniffDocument, DOC_KINDS, FORMULA_START } = require("../utils/validation");
 const { findProgram } = require("./programs").helpers;
+const settings = require("../utils/settings");
 
 // VR reports: the lab's own report files (PDF / PowerPoint / Word / Excel), uploaded by an admin for each program.
 // Everyone signed in can list and download them; only admins upload and delete.
 const router = express.Router();
-const MAX_MB = Number(process.env.VR_REPORT_MAX_MB) || 200;
+// The largest file is an admin setting (utils/settings.js); the form reader only enforces the upper bound a setting
+// can have, and the current setting is checked once the file has arrived.
+const HARD_MAX_MB = settings.DEFS.vrReportMaxMb.max;
 const INCOMING = path.join(UPLOAD_VR_REPORT_DIR, ".incoming");
 const ID = /^[a-f0-9]{24}$/;
 const TAIL_BYTES = 4 * 1024 * 1024;           // a zip lists its files at the end; 4 MB covers thousands of entries
@@ -29,13 +32,13 @@ const upload = multer({
     destination: (req, file, cb) => fs.mkdir(INCOMING, { recursive: true }, (err) => cb(err, INCOMING)),
     filename: (req, file, cb) => cb(null, `${crypto.randomBytes(12).toString("hex")}.part`),
   }),
-  limits: { fileSize: MAX_MB * 1024 * 1024, files: 1, fields: 5, fieldSize: 8 * 1024, parts: 8 },
+  limits: { fileSize: HARD_MAX_MB * 1024 * 1024, files: 1, fields: 5, fieldSize: 8 * 1024, parts: 8 },
 });
 const receiveFile = (req, res, next) => upload.single("file")(req, res, (err) => {
   if (!err) return next();
   removeQuietly(req.file?.path);
   res.status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({
-    message: err.code === "LIMIT_FILE_SIZE" ? `The file is larger than ${MAX_MB} MB.`
+    message: err.code === "LIMIT_FILE_SIZE" ? `The file is larger than ${HARD_MAX_MB} MB.`
       : err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE" ? "Upload one file at a time."
       : "The upload could not be read. Try again.",
   });
@@ -177,6 +180,8 @@ router.post("/programs/:code/vr-reports", requireAuth(["ADMIN"]), async (req, re
     const fail = (message, status = 400) => { removeQuietly(temp); res.status(status).json({ message }); };
     if (!req.file) return fail("Choose the report file to upload.");
 
+    const maxMb = (await settings.get()).vrReportMaxMb;
+    if (req.file.size > maxMb * 1024 * 1024) return fail(`The file is larger than ${maxMb} MB, the most allowed for a VR report (see Settings).`, 413);
     const { head, tail } = readHeadTail(temp, req.file.size);
     const sniff = sniffDocument(head, tail);
     if (sniff.error) return fail(sniff.error);
@@ -224,4 +229,4 @@ router.delete("/vr-reports/:id", requireAuth(["ADMIN"]), async (req, res) => {
 });
 
 module.exports = router;
-module.exports.helpers = { uploadName, downloadName, MAX_MB };
+module.exports.helpers = { uploadName, downloadName };

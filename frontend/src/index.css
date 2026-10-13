@@ -397,3 +397,33 @@ thead th.col-status { z-index: 3; }
   .ov-block + .ov-block { border-left: 0; border-top: 1px solid var(--rule); }
 }
 .ov-vr { margin-top: 8px; }
+.vr-edit { display: grid; gap: 6px; justify-items: start; }
+.segmented-sm { margin: 0; }
+.segmented-sm button { min-height: 32px; padding: 4px 12px; }
+.segmented-sm button[aria-checked="true"] .vr-cap { color: #fff; }
+.segmented-sm button[aria-checked="true"] .vr-cap::before { border-color: #fff; }
+.segmented-sm button[aria-checked="true"] .vr-cap-yes::before { background: #fff; }
+.segmented-sm button[aria-checked="true"] .vr-cap-partial::before { background: linear-gradient(90deg, #fff 50%, transparent 50%); }
+
+/* ── Settings (admin) ─────────────────────────────────── */
+.settings-card { padding-bottom: 8px; }
+.setting { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.setting:first-of-type { border-top: 0; padding-top: 0; }
+.setting-dirty .setting-label::after { content: "  · changed"; color: var(--ink-faint); font-weight: 400; font-size: 12.5px; }
+.setting-main { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; cursor: pointer; }
+.setting-label { font-weight: 500; }
+.setting-help { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 12.5px; color: var(--ink-soft); }
+.setting-help .link-btn { font-size: 12.5px; padding: 0; }
+.num-field { display: inline-flex; align-items: center; gap: 8px; }
+.num-field input { width: 96px; padding: 7px 10px; border: 1px solid var(--rule-strong); border-radius: var(--r-ctl); background: var(--sheet); text-align: right; }
+.num-field input[aria-invalid="true"] { border-color: var(--red); background: var(--red-bg); }
+.switch-row { justify-content: flex-start; gap: 12px; }
+.switch-row input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch { flex: none; position: relative; width: 38px; height: 22px; border-radius: 999px; background: var(--rule-strong); transition: background 0.15s; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform 0.15s; }
+.switch-row input:checked + .switch { background: var(--ink); }
+.switch-row input:checked + .switch::after { transform: translateX(16px); }
+.switch-row input:focus-visible + .switch { outline: 2px solid var(--ink); outline-offset: 2px; }
+.switch-row input:disabled + .switch { opacity: 0.5; }
+.settings-actions { position: sticky; bottom: 0; display: flex; gap: 8px; padding: 12px 0; background: var(--canvas); border-top: 1px solid var(--rule); }
+.num-field .muted { min-width: 52px; }
