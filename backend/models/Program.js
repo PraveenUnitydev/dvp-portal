@@ -7,6 +7,7 @@ const programSchema = new mongoose.Schema({
   name:        { type: String, trim: true, default: "" },
   description: { type: String, trim: true, default: "" },
   active:      { type: Boolean, default: true },
+  createdBy:   { type: String, default: "" },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Program", programSchema);

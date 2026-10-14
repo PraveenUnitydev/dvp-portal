@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:unit": "node --test",
+    "build:vrc": "vite build --base=/dvp/"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans": "^5.3.0",
+    "pptxgenjs": "^3.12.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

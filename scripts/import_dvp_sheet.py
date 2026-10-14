@@ -34,6 +34,7 @@ REASONS = {"INSUFFICIENT DATA": "Insufficient data", "INSUFFICIENT DVP INFO": "I
 # "Reference Images" columns are T-X, but one row overflows into Y and Z,
 # so every picture from column T onward counts
 IMAGE_COLS = ["T", "U", "V", "W", "X", "Y", "Z"]
+IMAGE_FIRST_COL = 19        # column T, 0-based, as drawing anchors count columns
 IMAGE_DIR = os.path.join(os.path.dirname(__file__), "..", "backend", "public", "dvp-images")
 
 def extract_cell_images(path):
@@ -62,17 +63,91 @@ def extract_cell_images(path):
         rel = rel_ids[int(rich_values[rv_index])]
         media = posixpath.normpath(posixpath.join("xl/richData", targets[rel]))
         by_row.setdefault(int(row), []).append((IMAGE_COLS.index(col), media))
-    return {row: [z.read(m) for _, m in sorted(items)] for row, items in by_row.items()}
+    return {row: [(col, z.read(m)) for col, m in sorted(items)] for row, items in by_row.items()}
 
-def save_images(code, blobs):
-    """Write a DVP's images as WebP; returns the file names in column order."""
-    names, seen = [], set()
-    for blob in blobs:
-        if blob in seen: continue                  # same picture pasted twice in one row
-        seen.add(blob)
+def drawing_notes(path):
+    """
+    Return ({sheet1 row: [(image column index, text), ...]}, [rows of floating pictures]).
+    Notes are text boxes drawn on top of the reference pictures (e.g. "13 to 25 mm"). The drawn arrows and boxes
+    can't be placed reliably over an in-cell picture, so their TEXT is kept as a caption under the picture.
+    Labels like "IMAGE #1" are only captions in the sheet and are skipped.
+    """
+    z = zipfile.ZipFile(path)
+    read = lambda n: z.read(n).decode("utf-8")
+    try:
+        target = re.search(r'Target="([^"]*drawings/[^"]+)"', read("xl/worksheets/_rels/sheet1.xml.rels")).group(1)
+        drawing = read(posixpath.normpath(posixpath.join("xl/worksheets", target)))
+    except (KeyError, AttributeError):
+        return {}, []
+    notes, floating = {}, []
+    for a in re.findall(r"<xdr:(?:twoCellAnchor|oneCellAnchor)\b.*?</xdr:(?:twoCellAnchor|oneCellAnchor)>", drawing, re.S):
+        col, row = (int(v) for v in re.search(r"<xdr:from><xdr:col>(\d+)</xdr:col>.*?<xdr:row>(\d+)</xdr:row>", a, re.S).groups())
+        if "<xdr:pic>" in a:
+            floating.append(row + 1)
+            continue
+        t = re.sub(r"\s+", " ", " ".join(re.findall(r"<a:t>([^<]*)</a:t>", a))).strip()
+        if t and not re.fullmatch(r"IMAGE\s*#\s*\d+", t, re.I):
+            notes.setdefault(row + 1, []).append((col - IMAGE_FIRST_COL, t))
+    return notes, floating
+
+CAPTION_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+
+def on_white(im):
+    """Transparent areas become white. Converting a transparent PNG straight to RGB turns them BLACK, which blacked
+    out the reference tables in the first import."""
+    if im.mode in ("RGBA", "LA", "PA") or (im.mode == "P" and "transparency" in im.info):
+        rgba = im.convert("RGBA")
+        bg = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+        bg.alpha_composite(rgba)
+        return bg.convert("RGB")
+    return im.convert("RGB")
+
+def add_caption(im, lines):
+    """A light strip under the picture with the notes that were drawn on it in the sheet."""
+    from PIL import ImageDraw, ImageFont
+    size = max(14, min(28, im.width // 42))
+    try: font = ImageFont.truetype(CAPTION_FONT, size)
+    except OSError: font = ImageFont.load_default()
+    text = "Notes in the sheet: " + "; ".join(lines)
+    draw = ImageDraw.Draw(im)
+    words, rows, cur = text.split(" "), [], ""
+    for w in words:                                   # wrap to the picture's width
+        trial = (cur + " " + w).strip()
+        if draw.textlength(trial, font=font) > im.width - 2 * size and cur: rows.append(cur); cur = w
+        else: cur = trial
+    rows.append(cur)
+    pad, line_h = size // 2 + 4, int(size * 1.4)
+    out = Image.new("RGB", (im.width, im.height + 2 * pad + line_h * len(rows)), (241, 243, 246))
+    out.paste(im, (0, 0))
+    d = ImageDraw.Draw(out)
+    d.line([(0, im.height), (im.width, im.height)], fill=(195, 204, 214), width=1)
+    for i, line in enumerate(rows):
+        d.text((size, im.height + pad + i * line_h), line, fill=(27, 39, 51), font=font)
+    return out
+
+def save_images(code, items, notes=()):
+    """Write a DVP's images as WebP; returns the file names in column order.
+    items: [(image column index, bytes)]; notes: [(image column index, text)] drawn on top in the sheet."""
+    names, seen, col_to_name = [], {}, {}
+    for col, blob in items:
+        if blob in seen:                            # same picture pasted twice in one row
+            col_to_name[col] = seen[blob]; continue
         name = f"{code}-{len(names) + 1}.webp"
-        Image.open(io.BytesIO(blob)).save(os.path.join(IMAGE_DIR, name), "WEBP", quality=85, method=6)
+        seen[blob] = name; col_to_name[col] = name
         names.append(name)
+    for col, blob in items:
+        name = col_to_name[col]
+        if seen.get(blob) != name or os.path.exists(os.path.join(IMAGE_DIR, name)): continue
+        src = Image.open(io.BytesIO(blob))
+        im = on_white(src)
+        # a note belongs to the picture in its column; if that column has none, to the nearest picture
+        mine = [t for c, t in notes if min(col_to_name, key=lambda k: abs(k - c)) == col] if col_to_name else []
+        if mine: im = add_caption(im, mine)
+        # screenshots and tables stay sharp (lossless); photos use high-quality compression
+        if src.format == "PNG" and im.width * im.height <= 2_500_000:
+            im.save(os.path.join(IMAGE_DIR, name), "WEBP", lossless=True, method=6)
+        else:
+            im.save(os.path.join(IMAGE_DIR, name), "WEBP", quality=90, method=6)
     return names
 
 def text(v):
@@ -88,6 +163,17 @@ def main(path):
                 if any(c not in (None, "") for c in r)]
     header, data = numbered[0][1], numbered[1:]
     images_by_row = extract_cell_images(path)
+    notes_by_row, floating_rows = drawing_notes(path)
+    data_rows = {row for row, _ in data}
+    stray = [r for r in floating_rows if r not in data_rows]
+    if floating_rows:
+        print(f"Note: {len(floating_rows)} picture(s) float on Sheet1 instead of sitting in a Reference Images cell"
+              + (f"; {len(stray)} of them are below/outside the DVP rows (rows {min(stray)}-{max(stray)}) and are not linked to any DVP" if stray else "")
+              + ". Not imported.")
+    other = [n for n in zipfile.ZipFile(path).namelist() if re.match(r"xl/drawings/drawing\d+\.xml$", n)]
+    other_pics = sum(zipfile.ZipFile(path).read(n).decode("utf-8").count("<xdr:pic>") for n in other) - len(floating_rows)
+    if other_pics > 0:
+        print(f"Note: other sheets hold {other_pics} picture(s) with no DVP number next to them. Not imported.")
     shutil.rmtree(IMAGE_DIR, ignore_errors=True)
     os.makedirs(IMAGE_DIR)
     assert "DVP NO" in key(header[C["number"]]) and "PROCEDURE" in key(header[C["procedure"]]), "Unexpected sheet layout"
@@ -125,7 +211,7 @@ def main(path):
             "procedure": text(r[C["procedure"]]),
             "procedureAvailable": key(r[C["procAvail"]]) == "YES",
             "vrCapability": "Partial" if vr.startswith("PARTIAL") else ("Yes" if vr == "YES" else "No"),
-            "referenceImages": save_images(code, images_by_row.get(row_no, [])),
+            "referenceImages": save_images(code, images_by_row.get(row_no, []), notes_by_row.get(row_no, [])),
         })
         res = key(r[C["result"]])
         assignments.append({

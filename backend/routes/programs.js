@@ -2,7 +2,10 @@ const express = require("express");
 const Program = require("../models/Program");
 const Dvp = require("../models/Dvp");
 const ProgramDvp = require("../models/ProgramDvp");
+const LopEntry = require("../models/LopEntry");
 const { requireAuth } = require("../middleware/auth");
+const { programCounts } = require("../utils/reportData");
+const settings = require("../utils/settings");
 
 const router = express.Router();
 const PROGRAM_CODE = /^[A-Z0-9]{2,12}$/;
@@ -12,8 +15,8 @@ const COLORS = ["Red", "Blue", "Green"];
 const MAX_REMARKS = 2000;
 
 const testNumber = (code) => code.replace(/^[UV]DVP-/, "");
-// Number shown to users: VRC-<program>-<catalog code>, e.g. VRC-S302-UDVP-101-01
-const dvpNumber = (programCode, dvpCode) => `VRC-${programCode}-${dvpCode}`;
+// Number shown to users: <program>-<catalog code>, e.g. S302-UDVP-101-01
+const dvpNumber = (programCode, dvpCode) => `${programCode}-${dvpCode}`;
 // Rows created before `applicable` existed count as switched on
 const isApplicable = { applicable: { $ne: false } };
 
@@ -25,7 +28,15 @@ async function findProgram(req, res) {
   return program;
 }
 
-function toRow(program, d, r) {
+// Observation images of a program DVP row, oldest first
+const observationsOf = (r) => (r.observations || []).map((o) => ({
+  file: o.file,
+  url: `/api/observation-images/${o.file}`,
+  uploadedBy: { name: o.uploadedBy?.name || o.uploadedBy?.username || "", username: o.uploadedBy?.username || "" },
+  uploadedAt: o.uploadedAt || null,
+}));
+
+function toRow(program, d, r, lopCount = 0) {
   return {
     dvpNumber: dvpNumber(program.code, d.code),
     code: d.code,
@@ -35,6 +46,7 @@ function toRow(program, d, r) {
     fullName: d.fullName,
     zone: d.zone,
     ergonomicsArea: d.ergonomicsArea,
+    vrCapability: d.vrCapability || "No",   // from the catalog: can this DVP be assessed in VR (Yes / Partial / No)
     cas: d.cas,
     requirement: d.requirement,
     acceptanceCriteria: d.acceptanceCriteria,
@@ -46,6 +58,8 @@ function toRow(program, d, r) {
     responsibility: r.responsibility || "",
     updatedBy: r.updatedBy || "",
     updatedAt: r.updatedAt || null,
+    lopCount,                       // how many LOP concerns have been raised for this DVP in this program
+    observationImages: observationsOf(r),
   };
 }
 
@@ -56,8 +70,9 @@ router.get("/", requireAuth(), async (req, res) => {
     res.json(await Promise.all(programs.map(async (p) => ({
       code: p.code,
       name: p.name,
+      description: p.description || "",
       dvpCount:  await ProgramDvp.countDocuments({ program: p._id, ...isApplicable }),
-      doneCount: await ProgramDvp.countDocuments({ program: p._id, ...isApplicable, completedStatus: "Done" }),
+      ...(await programCounts(p._id)),
     }))));
   } catch (err) {
     console.error("GET /programs failed:", err.message);
@@ -73,8 +88,9 @@ router.get("/:code/dvps", requireAuth(), async (req, res) => {
     const rows = await ProgramDvp.find({ program: program._id, ...isApplicable }).lean();
     const dvps = await Dvp.find({ _id: { $in: rows.map((r) => r.dvp) } }).lean();
     const byId = new Map(dvps.map((d) => [String(d._id), d]));
+    const lopCounts = new Map((await LopEntry.aggregate([{ $match: { program: program._id } }, { $group: { _id: "$dvp", n: { $sum: 1 } } }])).map((c) => [String(c._id), c.n]));
     const list = rows
-      .map((r) => { const d = byId.get(String(r.dvp)); return d ? toRow(program, d, r) : null; })
+      .map((r) => { const d = byId.get(String(r.dvp)); return d ? toRow(program, d, r, lopCounts.get(String(d._id)) || 0) : null; })
       .filter(Boolean)
       .sort((a, b) => a.zone.order - b.zone.order ||
         testNumber(a.code).localeCompare(testNumber(b.code), "en", { numeric: true }) ||
@@ -90,6 +106,9 @@ router.get("/:code/dvps", requireAuth(), async (req, res) => {
 // colour and remarks for one DVP. Only affects the selected program.
 router.patch("/:code/dvps/:dvpCode", requireAuth(["ADMIN", "USER"]), async (req, res) => {
   try {
+    if (req.user.role !== "ADMIN" && !(await settings.get()).usersCanEditDvps) {
+      return res.status(403).json({ message: "Only admins can change DVPs at the moment (see Settings)." });
+    }
     const program = await findProgram(req, res);
     if (!program) return;
     const dvpCode = String(req.params.dvpCode || "").toUpperCase();
@@ -127,7 +146,7 @@ router.patch("/:code/dvps/:dvpCode", requireAuth(["ADMIN", "USER"]), async (req,
       { new: true, runValidators: true }).lean();
     if (!row) return res.status(404).json({ message: `${dvpNumber(program.code, dvpCode)} is not part of program ${program.code}.` });
 
-    res.json(toRow(program, dvp, row));
+    res.json(toRow(program, dvp, row, await LopEntry.countDocuments({ program: program._id, dvp: dvp._id })));
   } catch (err) {
     console.error("PATCH /programs/:code/dvps/:dvpCode failed:", err.message);
     res.status(500).json({ message: "Could not save changes." });
@@ -135,4 +154,4 @@ router.patch("/:code/dvps/:dvpCode", requireAuth(["ADMIN", "USER"]), async (req,
 });
 
 module.exports = router;
-module.exports.helpers = { findProgram, dvpNumber, testNumber, isApplicable, PROGRAM_CODE, DVP_CODE };
+module.exports.helpers = { findProgram, dvpNumber, testNumber, isApplicable, toRow, PROGRAM_CODE, DVP_CODE };

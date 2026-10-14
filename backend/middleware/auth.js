@@ -10,7 +10,7 @@ exports.requireAuth = (roles = []) => async (req, res, next) => {
     const claims = jwt.verify(header.slice(7), process.env.JWT_SECRET);
     // Re-check the account on every request so a deactivated user or a
     // role change takes effect immediately, not when the token expires
-    const user = await User.findById(claims.id).select("username name role active").lean();
+    const user = await User.findById(claims.id).select("username name role active email source").lean();
     if (!user || !user.active) return res.status(401).json({ message: "Your session has ended. Sign in again." });
     if (roles.length && !roles.includes(user.role)) {
       return res.status(403).json({ message: "You don't have permission to do this." });

@@ -23,7 +23,10 @@ app.use((req, res, next) => {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Content-Security-Policy",
     "default-src 'self'; script-src 'self'; " +
-    "style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; " +
+    "style-src 'self' 'unsafe-inline'; font-src 'self' data:; " +
+    // blob: lets the Add DVP form preview a chosen image before it is uploaded. It only covers files
+    // the page itself just created in the browser; scripts are still limited to 'self'.
+    "img-src 'self' data: blob:; " +
     "connect-src 'self'; frame-ancestors 'self';");
   next();
 });
@@ -39,11 +42,20 @@ app.get("/api/health", (req, res) => res.json({
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/programs", require("./routes/programs"));
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api", require("./routes/lop"));
+app.use("/api", require("./routes/observations"));
+app.use("/api/reports", require("./routes/reports"));
+app.use("/api", require("./routes/vrReports"));
+app.use("/api", require("./routes/settings"));
+app.use("/api", require("./routes/users"));
 app.use("/api", (req, res) => res.status(404).json({ message: "Not found." }));
 
 // DVP reference images (from the master sheet). Names change whenever the
 // sheet is re-imported, so a day of caching is safe.
-app.use("/dvp-images", express.static(path.join(__dirname, "public", "dvp-images"), { maxAge: "1d", fallthrough: false }));
+// Sheet images ship with the app; images added in the portal live in the uploads folder (see config.js)
+const { SHEET_IMAGE_DIR, UPLOAD_IMAGE_DIR } = require("./config");
+app.use("/dvp-images", express.static(SHEET_IMAGE_DIR, { maxAge: "1d", fallthrough: true }));
+app.use("/dvp-images", express.static(UPLOAD_IMAGE_DIR, { maxAge: "1d", fallthrough: false }));
 
 // Serve the built frontend; never cache index.html (lesson from VRSP)
 const buildPath = path.join(__dirname, "build");
@@ -56,4 +68,6 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err.message));
 
-app.listen(PORT, "0.0.0.0", () => console.log(`DVP Portal running on http://0.0.0.0:${PORT}`));
+// Behind Nginx in production set HOST=127.0.0.1, so the portal is only reachable through Nginx (HTTPS)
+const HOST = process.env.HOST || "0.0.0.0";
+app.listen(PORT, HOST, () => console.log(`DVP Portal running on http://${HOST}:${PORT}`));

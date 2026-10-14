@@ -1,8 +1,18 @@
+import { withBase } from "./base.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchProgramDvps, updateProgramDvp } from "./api.js";
+import { fetchProgramDvps, setVrCapability, updateProgramDvp } from "./api.js";
+import ObservationImages from "./ObservationImages.jsx";
 import { COLORS, Clamp, ColorTag, ImageViewer, Thumbnails, useZones } from "./shared.jsx";
+import LopPanel from "./LopPanel.jsx";
+import { permissions, useSettings } from "./settings.js";
 
 const MAX_REMARKS = 2000;
+// VR capable (from the DVP catalog). Shown with neutral marks: colours on this screen always mean a DVP's colour.
+export const VR_VALUES = ["Yes", "Partial", "No"];
+export function VrTag({ value }) {
+  const v = VR_VALUES.includes(value) ? value : "No";
+  return <span className={`vr-cap vr-cap-${v.toLowerCase()}`}>{v}</span>;
+}
 
 export default function DvpsView({ programCode, user }) {
   const [data, setData] = useState(null);
@@ -11,9 +21,11 @@ export default function DvpsView({ programCode, user }) {
   const [zone, setZone] = useState("All");
   const [area, setArea] = useState("All");
   const [colorFilter, setColorFilter] = useState("All");
+  const [vrFilter, setVrFilter] = useState("All");
   const [query, setQuery] = useState("");
   const [viewer, setViewer] = useState(null);
   const [editing, setEditing] = useState(null); // dvp code
+  const [editTab, setEditTab] = useState("details");   // which tab the drawer opens on
   const [flash, setFlash] = useState("");
 
   useEffect(() => {
@@ -34,12 +46,23 @@ export default function DvpsView({ programCode, user }) {
       (zone === "All" || d.zone.name === zone) &&
       (area === "All" || d.ergonomicsArea === area) &&
       (colorFilter === "All" || (colorFilter === "None" ? !d.color : d.color === colorFilter)) &&
+      (vrFilter === "All" || d.vrCapability === vrFilter) &&
       (!q || [d.dvpNumber, d.evaluationParameter, d.component, d.fullName, d.remarks].some((v) => (v || "").toLowerCase().includes(q))));
-  }, [dvps, zone, area, colorFilter, query]);
+  }, [dvps, zone, area, colorFilter, vrFilter, query]);
 
-  const filtersActive = zone !== "All" || area !== "All" || colorFilter !== "All" || query.trim() !== "";
+  const filtersActive = zone !== "All" || area !== "All" || colorFilter !== "All" || vrFilter !== "All" || query.trim() !== "";
   const editingDvp = dvps.find((d) => d.code === editing) || null;
-  const canEdit = user.role === "ADMIN" || user.role === "USER";
+  const viewerDvp = viewer && dvps.find((d) => d.code === viewer.code);
+  const openViewer = (d, index, kind = "reference") => setViewer({ code: d.code, index, kind });
+  const openObservations = (d) => { setEditTab("observations"); setEditing(d.code); };
+  const can = permissions(user, useSettings());
+  const canEdit = can.editDvps;
+
+  // The LOP tab reports its count so the table's "LOP (n)" button stays right without reloading
+  const onLopChanged = (code, count, last) => setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === code ? { ...d, lopCount: count, lastLopAt: last } : d)) }));
+
+  // A DVP row changed without closing the drawer (observation images added or removed)
+  const onRowChanged = (updated) => setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === updated.code ? { ...d, ...updated } : d)) }));
 
   const onSaved = (updated) => {
     setData((prev) => ({ ...prev, dvps: prev.dvps.map((d) => (d.code === updated.code ? updated : d)) }));
@@ -59,11 +82,10 @@ export default function DvpsView({ programCode, user }) {
     );
   }
 
-  const done = dvps.filter((d) => d.completedStatus === "Done").length;
-
   return (
     <>
-      <p className="summary"><strong>{dvps.length}</strong> DVPs apply to {programCode}. <strong>{done}</strong> are done.</p>
+      <Overview dvps={dvps} colorFilter={colorFilter} onColour={(c) => setColorFilter(colorFilter === c ? "All" : c)}
+        vrFilter={vrFilter} onVr={(v) => setVrFilter(vrFilter === v ? "All" : v)} />
       <div className="flash" role="status" aria-live="polite">{flash}</div>
 
       <div className="filters">
@@ -79,14 +101,19 @@ export default function DvpsView({ programCode, user }) {
         </label>
         <label><span>Colour</span>
           <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
-            <option>All</option>{COLORS.map((c) => <option key={c}>{c}</option>)}<option value="None">No colour</option>
+            <option>All</option>{COLORS.map((c) => <option key={c}>{c}</option>)}<option value="None">Open</option>
+          </select>
+        </label>
+        <label><span>VR capable</span>
+          <select value={vrFilter} onChange={(e) => setVrFilter(e.target.value)}>
+            <option>All</option>{VR_VALUES.map((v) => <option key={v}>{v}</option>)}
           </select>
         </label>
         <label className="search"><span>Search</span>
           <input type="search" value={query} placeholder="DVP number, component, evaluation or remarks" onChange={(e) => setQuery(e.target.value)} />
         </label>
         {filtersActive && (
-          <button type="button" className="link-btn" onClick={() => { setZone("All"); setArea("All"); setColorFilter("All"); setQuery(""); }}>Clear filters</button>
+          <button type="button" className="link-btn" onClick={() => { setZone("All"); setArea("All"); setColorFilter("All"); setVrFilter("All"); setQuery(""); }}>Clear filters</button>
         )}
         <span className="count" aria-live="polite">Showing {visible.length} of {dvps.length}</span>
       </div>
@@ -103,11 +130,13 @@ export default function DvpsView({ programCode, user }) {
                 <th scope="col" className="col-eval">Evaluation</th>
                 <th scope="col" className="col-zone">Zone</th>
                 <th scope="col" className="col-area">Ergonomic area</th>
+                <th scope="col" className="col-vr">VR capable</th>
                 <th scope="col" className="col-cas">CAS</th>
                 <th scope="col" className="col-text">Acceptance criteria</th>
                 <th scope="col" className="col-text">Procedure</th>
                 <th scope="col" className="col-images">Image reference</th>
-                <th scope="col" className="col-status">Status</th>
+                <th scope="col" className="col-images">Observation images</th>
+                <th scope="col" className="col-status">Colour</th>
                 <th scope="col" className="col-remarks">Remarks</th>
               </tr>
             </thead>
@@ -115,8 +144,8 @@ export default function DvpsView({ programCode, user }) {
               {visible.map((d) => (
                 <tr key={d.code} className="row">
                   <td className={`col-num ${d.color ? `stripe-${d.color.toLowerCase()}` : ""}`}>
-                    <button type="button" className="row-toggle" onClick={() => setEditing(d.code)}
-                      title={canEdit ? "Open details and update status" : "Open details"}>
+                    <button type="button" className="row-toggle" onClick={() => { setEditTab("details"); setEditing(d.code); }}
+                      title={canEdit ? "Open details and update colour" : "Open details"}>
                       {d.dvpNumber}
                     </button>
                   </td>
@@ -124,13 +153,26 @@ export default function DvpsView({ programCode, user }) {
                   <td className="col-eval">{d.evaluationParameter}</td>
                   <td className="col-zone">{d.zone.name}</td>
                   <td className="col-area">{d.ergonomicsArea}</td>
+                  <td className="col-vr"><VrTag value={d.vrCapability} /></td>
                   <td className="col-cas">{d.cas}</td>
                   <td className="col-text"><Clamp text={d.acceptanceCriteria} empty="Not defined yet" /></td>
                   <td className="col-text"><Clamp text={d.procedure} empty="Not defined yet" /></td>
-                  <td className="col-images"><Thumbnails dvp={d} onOpen={(i) => setViewer({ dvp: d, index: i })} /></td>
+                  <td className="col-images"><Thumbnails dvp={d} onOpen={(i) => openViewer(d, i)} /></td>
+                  <td className="col-images">
+                    <Thumbnails dvp={d} kind="observation" empty="None" onOpen={(i) => openViewer(d, i, "observation")} />
+                    {(can.addObservations || (d.observationImages || []).length > 0 && can.removeOwnObservations) && (
+                      <button type="button" className="obs-add-btn" onClick={() => openObservations(d)}
+                        title={`Add or remove observation images for ${d.dvpNumber}`}>
+                        {(d.observationImages || []).length ? "Manage" : "+ Add images"}
+                      </button>
+                    )}
+                  </td>
                   <td className="col-status">
-                    <div className={d.completedStatus === "Done" ? "status status-done" : "status"}>{d.completedStatus}</div>
                     <div className="status-color"><ColorTag color={d.color} /></div>
+                    {((d.color === "Red" && can.raiseLop) || d.lopCount > 0) && (
+                      <button type="button" className="lop-btn" onClick={() => { setEditTab("lop"); setEditing(d.code); }}
+                        title={d.lopCount ? "Open the LOP history" : "Raise a LOP concern"}>{d.lopCount ? `LOP (${d.lopCount})` : "Raise LOP"}</button>
+                    )}
                   </td>
                   <td className="col-remarks"><Clamp text={d.remarks} /></td>
                 </tr>
@@ -141,30 +183,40 @@ export default function DvpsView({ programCode, user }) {
       )}
 
       {editingDvp && (
-        <EditPanel dvp={editingDvp} programCode={programCode} canEdit={canEdit}
-          onClose={() => setEditing(null)} onSaved={onSaved}
-          onOpenImage={(i) => setViewer({ dvp: editingDvp, index: i })} imageOpen={Boolean(viewer)} />
+        <EditPanel dvp={editingDvp} programCode={programCode} canEdit={canEdit} user={user} initialTab={editTab} onLopChanged={onLopChanged}
+          onClose={() => setEditing(null)} onSaved={onSaved} onRowChanged={onRowChanged}
+          onOpenImage={(i, kind) => openViewer(editingDvp, i, kind)} imageOpen={Boolean(viewer)} />
       )}
-      {viewer && <ImageViewer {...viewer} onClose={() => setViewer(null)} />}
+      {viewerDvp && <ImageViewer dvp={viewerDvp} index={viewer.index} kind={viewer.kind} onClose={() => setViewer(null)} />}
     </>
   );
 }
 
-function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, imageOpen }) {
-  const [completedStatus, setCompletedStatus] = useState(dvp.completedStatus);
+function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, onClose, onSaved, onRowChanged, onOpenImage, imageOpen }) {
+  // "observations" opens the details tab at the observation images
+  const [tab, setTab] = useState(initialTab === "lop" ? "lop" : "details");
+  const obsRef = useRef(null);
+  const [obsBusy, setObsBusy] = useState(false);
+  const [lopDirty, setLopDirty] = useState(false);
   const [color, setColor] = useState(dvp.color);
   const [remarks, setRemarks] = useState(dvp.remarks);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const headingRef = useRef(null);
 
-  const dirty = completedStatus !== dvp.completedStatus || color !== dvp.color || remarks.trim() !== (dvp.remarks || "");
+  const dirty = color !== dvp.color || remarks.trim() !== (dvp.remarks || "");
 
-  const close = () => { if (!dirty || window.confirm("Discard your unsaved changes?")) onClose(); };
+  const close = () => {
+    if (obsBusy && !window.confirm("Images are still uploading. Close anyway? The upload carries on.")) return;
+    if ((!dirty && !lopDirty) || window.confirm("Discard your unsaved changes?")) onClose();
+  };
 
   useEffect(() => {
     const opener = document.activeElement;
-    headingRef.current?.focus();
+    if (initialTab === "observations" && obsRef.current) {
+      obsRef.current.scrollIntoView({ block: "start" });
+      obsRef.current.focus({ preventScroll: true });
+    } else headingRef.current?.focus();
     return () => opener?.focus?.();
   }, []);
   useEffect(() => {
@@ -176,7 +228,6 @@ function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, i
   const save = async (e) => {
     e.preventDefault();
     const changes = {};
-    if (completedStatus !== dvp.completedStatus) changes.completedStatus = completedStatus;
     if (color !== dvp.color) changes.color = color;
     if (remarks.trim() !== (dvp.remarks || "")) changes.remarks = remarks.trim();
     setSaving(true); setError("");
@@ -203,21 +254,24 @@ function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, i
           <button type="button" className="btn" onClick={close}>Close</button>
         </div>
 
-        <div className="drawer-body">
+        <div className="drawer-tabs" role="tablist" aria-label="DVP sections">
+          <button type="button" role="tab" id="tab-details" aria-selected={tab === "details"} onClick={() => setTab("details")}>Details</button>
+          <button type="button" role="tab" id="tab-lop" aria-selected={tab === "lop"} onClick={() => setTab("lop")}>LOP concerns{dvp.lopCount ? ` (${dvp.lopCount})` : ""}</button>
+        </div>
+
+        <div className="drawer-body" role="tabpanel" aria-labelledby={tab === "lop" ? "tab-lop" : "tab-details"}>
+          {tab === "lop" ? (
+            <LopPanel programCode={programCode} dvp={dvp} user={user} onChanged={onLopChanged} onDirty={setLopDirty} />
+          ) : (<>
           {canEdit && (
             <form className="edit-form" onSubmit={save}>
               <h3>Update for {programCode}</h3>
-              <label className="field"><span>Status</span>
-                <select value={completedStatus} onChange={(e) => setCompletedStatus(e.target.value)}>
-                  <option>Not done</option><option>Done</option>
-                </select>
-              </label>
               <fieldset className="field color-choice">
                 <legend>Colour</legend>
                 {[...COLORS, null].map((c) => (
                   <label key={c || "none"} className={`swatch ${c ? `swatch-${c.toLowerCase()}` : "swatch-none"}`}>
                     <input type="radio" name="color" checked={color === c} onChange={() => setColor(c)} />
-                    <span>{c || "No colour"}</span>
+                    <span>{c || "Open"}</span>
                   </label>
                 ))}
               </fieldset>
@@ -236,6 +290,8 @@ function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, i
           <dl className="details">
             <dt>Zone</dt><dd>{dvp.zone.name}</dd>
             <dt>Ergonomic area</dt><dd>{dvp.ergonomicsArea || "—"}</dd>
+            <dt>VR capable</dt>
+            <dd>{user?.role === "ADMIN" ? <VrEditor dvp={dvp} onChanged={onRowChanged} /> : <VrTag value={dvp.vrCapability} />}</dd>
             <dt>CAS</dt><dd>{dvp.cas || "—"}</dd>
             <dt>Acceptance criteria</dt><dd className="pre">{dvp.acceptanceCriteria || "Not defined yet"}</dd>
             <dt>Procedure</dt><dd className="pre">{dvp.procedure || "Not defined yet"}</dd>
@@ -244,16 +300,99 @@ function EditPanel({ dvp, programCode, canEdit, onClose, onSaved, onOpenImage, i
               {dvp.referenceImages.length === 0 ? "No image" : (
                 <div className="drawer-thumbs">
                   {dvp.referenceImages.map((src, i) => (
-                    <button key={src} type="button" className="thumb thumb-lg" onClick={() => onOpenImage(i)} aria-label={`Open image ${i + 1}`}>
-                      <img src={src} alt="" loading="lazy" />
+                    <button key={src} type="button" className="thumb thumb-lg" onClick={() => onOpenImage(i, "reference")} aria-label={`Open image ${i + 1}`}>
+                      <img src={withBase(src)} alt="" loading="lazy" />
                     </button>
                   ))}
                 </div>
               )}
             </dd>
+            <dt id="obs-heading" ref={obsRef} tabIndex={-1}>Observation images</dt>
+            <dd>
+              <ObservationImages programCode={programCode} dvp={dvp} user={user}
+                onChanged={onRowChanged} onOpen={(i) => onOpenImage(i, "observation")} onBusy={setObsBusy} />
+            </dd>
           </dl>
+          </>)}
         </div>
       </aside>
+    </div>
+  );
+}
+
+// The program at a glance: how many DVPs are assessed (have a colour), how many carry each colour (select one to
+// filter the table), and how many LOP concerns have been raised
+function Overview({ dvps, colorFilter, onColour, vrFilter, onVr }) {
+  const total = dvps.length;
+  const count = (c) => dvps.filter((d) => (c === "None" ? !d.color : d.color === c)).length;
+  const assessed = total - count("None");
+  const pct = total ? Math.round((assessed / total) * 100) : 0;
+  const lopEntries = dvps.reduce((n, d) => n + (d.lopCount || 0), 0);
+  const vrCount = (v) => dvps.filter((d) => (d.vrCapability || "No") === v).length;
+  const chips = [["Red", "c-red", "Red"], ["Blue", "c-blue", "Blue"], ["Green", "c-green", "Green"], ["None", "", "Open"]];
+  return (
+    <section className="overview" aria-label="Program overview">
+      <div className="ov-block">
+        <p className="ov-label">Assessed (colour given)</p>
+        <p className="ov-value">{assessed} of {total}<small>{pct}%</small></p>
+        <div className="ov-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="DVPs assessed"><span style={{ width: `${pct}%` }} /></div>
+      </div>
+      <div className="ov-block">
+        <p className="ov-label">Colour (select one to show only those DVPs)</p>
+        <div className="ov-colours">
+          {chips.map(([value, cls, label]) => (
+            <button key={value} type="button" className={`ov-chip ${cls}`} aria-pressed={colorFilter === value} onClick={() => onColour(value)}>
+              {label} <strong>{count(value)}</strong>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="ov-block">
+        <p className="ov-label">VR capable DVPs</p>
+        <p className="ov-value">{vrCount("Yes")} of {total}{vrCount("Partial") ? <small>+ {vrCount("Partial")} partial</small> : null}</p>
+        <div className="ov-colours ov-vr" aria-label="VR capable (select one to show only those DVPs)">
+          {VR_VALUES.map((v) => (
+            <button key={v} type="button" className={`ov-chip vr-chip vr-cap-${v.toLowerCase()}`} aria-pressed={vrFilter === v} onClick={() => onVr(v)}
+              title={`Show only DVPs that are ${v === "Yes" ? "VR capable" : v === "Partial" ? "partly VR capable" : "not VR capable"}`}>
+              {v} <strong>{vrCount(v)}</strong>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="ov-block">
+        <p className="ov-label">LOP concerns</p>
+        <p className="ov-value">{lopEntries === 0 ? "None raised" : lopEntries}</p>
+      </div>
+    </section>
+  );
+}
+
+// Admins: change a DVP's VR capability right here. It is a catalog value, so the change applies to every program.
+function VrEditor({ dvp, onChanged }) {
+  const [busy, setBusy] = useState("");
+  const [note, setNote] = useState("");
+  const [error, setError] = useState("");
+  const choose = async (v) => {
+    if (v === dvp.vrCapability || busy) return;
+    setBusy(v); setError(""); setNote("");
+    try {
+      const r = await setVrCapability(dvp.code, v);
+      onChanged({ code: dvp.code, vrCapability: r.vrCapability });
+      setNote(`Saved: ${r.vrCapability}. Applies to every program.`);
+    } catch (err) { setError(err.message); }
+    setBusy("");
+  };
+  return (
+    <div className="vr-edit">
+      <div className="segmented segmented-sm" role="radiogroup" aria-label={`VR capability of ${dvp.code}`}>
+        {VR_VALUES.map((v) => (
+          <button key={v} type="button" role="radio" aria-checked={dvp.vrCapability === v} disabled={Boolean(busy)} onClick={() => choose(v)}>
+            <VrTag value={v} />{busy === v ? "…" : ""}
+          </button>
+        ))}
+      </div>
+      <small className="hint" role="status">{note || "Catalog setting: a change applies to every program."}</small>
+      {error && <p className="notice notice-error" role="alert">{error}</p>}
     </div>
   );
 }
