@@ -24,9 +24,9 @@ Sign in:  DVP "Sign in with Microsoft" → VRSP /api/auth/sso?app=dvp → Micros
 
 ## 1. VRSP (once)
 
-1. **Code.** Merge the VRSP branch **`sso-apps`** into `main`, and update VRSP on the server the usual way. The
-   branch adds the sign-in for other portals and a *DVP Portal* link in VRSP's header (shown to Admin and Member).
-   It also carries a fresh frontend build.
+1. **Code.** Update VRSP on the server from **`main`** the usual way (`git pull origin main`). That brings the sign-in
+   for other portals and a *DVP Portal* link in VRSP's header (shown to Admin and Member), with a fresh frontend
+   build.
 2. **Secret.** Make one shared secret, used by both apps:
    ```bash
    node -e "console.log(require('crypto').randomBytes(36).toString('base64url'))"
@@ -48,7 +48,7 @@ node -v
 # Code: next to VRSP, e.g. /opt/dvp-portal
 sudo mkdir -p /opt/dvp-portal && sudo chown "$USER" /opt/dvp-portal
 git clone https://github.com/PraveenUnitydev/dvp-portal.git /opt/dvp-portal
-cd /opt/dvp-portal && git checkout admin-catalog-programs
+cd /opt/dvp-portal          # branch: main
 
 # Uploaded files live outside the code folder, so updates never touch them
 sudo mkdir -p /var/lib/dvp-portal/uploads && sudo chown "$USER" /var/lib/dvp-portal/uploads
