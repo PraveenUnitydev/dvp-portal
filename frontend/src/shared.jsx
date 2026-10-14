@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AuthImage from "./AuthImage.jsx";
+import { withBase } from "./base.js";
 
 export const COLORS = ["Red", "Blue", "Green"];
 
@@ -16,7 +17,7 @@ export function ColorTag({ color }) {
 // The images of a DVP: its reference images, or (kind "observation") the observation images added in this program,
 // which are only served to signed-in people and so are shown through AuthImage
 export const imagesOf = (dvp, kind) => (kind === "observation" ? (dvp.observationImages || []).map((o) => o.url) : dvp.referenceImages || []);
-const Pic = ({ src, signedIn, alt = "" }) => (signedIn ? <AuthImage src={src} alt={alt} /> : <img src={src} alt={alt} loading="lazy" decoding="async" />);
+const Pic = ({ src, signedIn, alt = "" }) => (signedIn ? <AuthImage src={src} alt={alt} /> : <img src={withBase(src)} alt={alt} loading="lazy" decoding="async" />);
 
 export function Thumbnails({ dvp, onOpen, kind = "reference", empty = "No image" }) {
   const images = imagesOf(dvp, kind);
@@ -74,7 +75,7 @@ export function ImageViewer({ dvp, index: startIndex, kind = "reference", onClos
         </div>
         {images.length === 0 ? <p className="notice viewer-empty">This image has been removed.</p>
           : observation ? <AuthImage key={images[index]} className="viewer-img" src={images[index]} alt={`${what} ${index + 1} for ${dvp.dvpNumber}`} />
-          : <img className="viewer-img" src={images[index]} alt={`${what} ${index + 1} for ${dvp.dvpNumber}`} />}
+          : <img className="viewer-img" src={withBase(images[index])} alt={`${what} ${index + 1} for ${dvp.dvpNumber}`} />}
         {observation && images.length > 0 && <ObservationMeta o={dvp.observationImages[index]} />}
         {images.length > 1 && (
           <div className="viewer-nav">

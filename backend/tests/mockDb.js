@@ -6,7 +6,7 @@ const Module = require("module");
 
 // ── in-memory models ────────────────────────────────────────────────────
 let nextId = 1;
-const oid = () => ({ _bsontype: "ObjectId", id: String(nextId++).padStart(24, "0"), toString() { return this.id; }, equals(o) { return String(o) === this.id; } });
+const oid = () => ({ _bsontype: "ObjectId", id: String(nextId++).padStart(24, "0"), toString() { return this.id; }, toJSON() { return this.id; }, equals(o) { return String(o) === this.id; } });
 const same = (a, b) => String(a) === String(b);
 // A dotted path, as MongoDB reads it: "observations.3" is the 4th element, "observations.file" is any element's file
 function valuesAt(doc, key) {
@@ -18,11 +18,12 @@ function valuesAt(doc, key) {
 }
 function matches(doc, q) {
   return Object.entries(q || {}).every(([k, cond]) => {
-    const vals = valuesAt(doc, k), v = vals[0];
+    if (k === "$or") return cond.some((sub) => matches(doc, sub));
+    const vals = valuesAt(doc, k).flatMap((x) => (Array.isArray(x) ? x : [x])), v = vals[0];
     if (cond && typeof cond === "object" && !cond._bsontype && !Array.isArray(cond)) {
       if ("$exists" in cond) return (vals.length > 0) === Boolean(cond.$exists);
-      if ("$ne" in cond) return v !== cond.$ne;
-      if ("$in" in cond) return cond.$in.some((x) => same(x, v));
+      if ("$ne" in cond) return !vals.some((x) => same(x, cond.$ne)) && !(vals.length === 0 && cond.$ne === undefined);
+      if ("$in" in cond) return cond.$in.some((x) => vals.some((y) => same(x, y)));
     }
     return vals.some((x) => same(x, cond));
   });
@@ -40,9 +41,17 @@ function query(rows, single) {
     sort(spec) { const [[k, dir]] = Object.entries(spec); out = [...out].sort((a, b) => (a[k] > b[k] ? 1 : a[k] < b[k] ? -1 : 0) * dir); return q; },
     select() { return q; },
     lean() { return Promise.resolve(single ? out[0] || null : out); },
-    then(res, rej) { return q.lean().then(res, rej); },
+    // without lean(): rows act like Mongoose documents (changes are made on the stored row itself)
+    then(res, rej) { out.forEach(asDoc); return Promise.resolve(single ? out[0] || null : out).then(res, rej); },
   };
   return q;
+}
+function asDoc(row) {
+  if (row && !row.save) {
+    Object.defineProperty(row, "save", { value: async () => row, configurable: true });
+    Object.defineProperty(row, "toObject", { value: () => ({ ...row }), configurable: true });
+  }
+  return row;
 }
 function model(rows) {
   return {
@@ -51,8 +60,8 @@ function model(rows) {
     findOne: (f) => query(rows.filter((r) => matches(r, f)), true),
     findById: (id) => query(rows.filter((r) => same(r._id, id)), true),
     countDocuments: async (f) => rows.filter((r) => matches(r, f)).length,
-    // like a Mongoose document: has toObject()
-    create: async (doc) => { const row = { _id: oid(), createdAt: new Date(Date.now() + rows.length), ...doc }; rows.push(row); return Object.defineProperty({ ...row }, "toObject", { value: () => ({ ...row }) }); },
+    // like a Mongoose document: has save() and toObject()
+    create: async (doc) => { const row = { _id: oid(), createdAt: new Date(Date.now() + rows.length), ...doc }; rows.push(row); return asDoc(row); },
     findOneAndUpdate: (f, u, opts = {}) => {
       let row = rows.find((r) => matches(r, f));
       if (!row && opts.upsert) {

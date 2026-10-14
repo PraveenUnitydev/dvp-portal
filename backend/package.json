@@ -12,7 +12,8 @@
     "test:report": "node tests/report.test.js",
     "test:vr-reports": "node tests/vrReports.test.js",
     "test:observations": "node tests/observations.test.js",
-    "test:settings": "node tests/settings.test.js"
+    "test:settings": "node tests/settings.test.js",
+    "test:sso": "node tests/sso.test.js"
   },
   "engines": {
     "node": ">=18"

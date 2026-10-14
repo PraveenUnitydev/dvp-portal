@@ -1,3 +1,5 @@
+import { withBase } from "./base.js";
+
 const TOKEN_KEY = "dvpPortalToken";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
@@ -10,7 +12,7 @@ export const setSessionEndedHandler = (fn) => { onSessionEnded = fn; };
 // `json` for ordinary calls, `form` (a FormData) for uploads - the browser sets the multipart header itself
 async function send(method, path, { json, form } = {}) {
   const token = getToken();
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(withBase(`/api${path}`), {
     method,
     headers: {
       Accept: "application/json",
@@ -26,7 +28,8 @@ async function send(method, path, { json, form } = {}) {
   }
   if (!res.ok) {
     const error = new Error(data.message || `Request failed (${res.status}).`);
-    error.status = res.status;       // lets a screen react to a conflict (409) differently from other errors
+    error.status = res.status;
+    error.pending = Boolean(data.pending);       // lets a screen react to a conflict (409) differently from other errors
     throw error;
   }
   return data;
@@ -34,6 +37,13 @@ async function send(method, path, { json, form } = {}) {
 const request = (method, path, body) => send(method, path, { json: body });
 
 export const login = (username, password) => request("POST", "/auth/login", { username, password });
+// Microsoft sign-in through VRSP: whether it is set up, where it starts, and trading VRSP's one-time code for a session
+export const fetchSsoConfig = () => request("GET", "/auth/sso-config");
+export const ssoStartUrl = () => withBase("/api/auth/sso-start");
+export const ssoExchange = (code) => request("POST", "/auth/sso-exchange", { code });
+// Admin: people who can use the portal
+export const fetchUsers = () => request("GET", "/admin/users");
+export const updateUser = (id, changes) => request("PATCH", `/admin/users/${encodeURIComponent(id)}`, changes);
 export const fetchMe = () => request("GET", "/auth/me");
 export const fetchPrograms = () => request("GET", "/programs");
 export const fetchProgramDvps = (code) => request("GET", `/programs/${encodeURIComponent(code)}/dvps`);
@@ -67,7 +77,7 @@ const pictureCache = new Map();
 export function fetchProtectedImage(url) {
   const key = `${getToken()}|${url}`;
   if (!pictureCache.has(key)) {
-    pictureCache.set(key, fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } })
+    pictureCache.set(key, fetch(withBase(url), { headers: { Authorization: `Bearer ${getToken()}` } })
       .then(async (res) => { if (!res.ok) throw new Error("The picture could not be loaded."); return URL.createObjectURL(await res.blob()); })
       .catch((err) => { pictureCache.delete(key); throw err; }));
   }
@@ -94,7 +104,7 @@ export const deleteVrReport = (id) => request("DELETE", `/vr-reports/${encodeURI
 export function uploadVrReport(program, formData, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/programs/${encodeURIComponent(program)}/vr-reports`);
+    xhr.open("POST", withBase(`/api/programs/${encodeURIComponent(program)}/vr-reports`));
     const token = getToken();
     if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     xhr.setRequestHeader("Accept", "application/json");
@@ -113,6 +123,6 @@ export function uploadVrReport(program, formData, onProgress) {
 export async function downloadVrReport(id) {
   const { url, fileName } = await request("GET", `/vr-reports/${encodeURIComponent(id)}/link`);
   const a = document.createElement("a");
-  a.href = url; a.download = fileName; a.rel = "noopener";
+  a.href = withBase(url); a.download = fileName; a.rel = "noopener";
   document.body.appendChild(a); a.click(); a.remove();
 }

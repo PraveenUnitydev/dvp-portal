@@ -215,6 +215,22 @@ hollow = No) because colour on that screen always means a DVP's colour.
 form. It is a catalog value, so the change applies to every program, and it is marked as edited in the portal so a
 re-import of the master sheet keeps it. API: `PUT /api/admin/dvps/:code/vr-capability { vrCapability }` (admin).
 
+## Sign-in and users
+
+On vrc.mahindra.com people sign in with **Microsoft**, through VRSP's sign-in (no Azure change; signing in here
+never signs anyone out of VRSP). The portal decides access itself:
+
+- emails in `ADMIN_EMAILS` (backend/.env) are always admins;
+- everyone else appears on **Users** (admin tab) the first time they sign in, and waits there until an admin approves
+  them, unless *Settings → Sign-in* lets first-time sign-ins straight in as User;
+- on **Users** an admin approves or declines people, sets Admin / User, and turns access off (applies at the person's
+  next click). An admin can't remove their own admin access, and the last admin can't be removed.
+
+Portal accounts with a password (`scripts/create-user.js`) still work, as a fallback under *Sign in with a portal
+account instead*. Without the `SSO_*` settings the login page shows only the password form, as before.
+
+Putting it on the server: **[DEPLOY.md](DEPLOY.md)**. Test with mock data and a stand-in VRSP: `npm run test:sso`.
+
 ## Settings (admin)
 
 **Settings** (admin tab) holds the portal's rules and limits. They apply straight away, with no restart; the server

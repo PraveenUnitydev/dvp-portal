@@ -6,6 +6,11 @@ const envNumber = (name, fallback) => (Number(process.env[name]) > 0 ? Number(pr
 
 // type, default, and for numbers min / max / unit. `group` and the texts are what the Settings page shows.
 const DEFS = {
+  ssoNewUsersGetAccess: {
+    group: "Sign-in", type: "boolean", default: false,
+    label: "People signing in with Microsoft for the first time get User access straight away",
+    help: "Off: they wait until an admin approves them on the Users tab. Emails in ADMIN_EMAILS are always admins.",
+  },
   usersCanEditDvps: {
     group: "Who can do what", type: "boolean", default: true,
     label: "Users can change a DVP's colour and remarks",

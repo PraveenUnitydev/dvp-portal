@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:unit": "node --test"
+    "test:unit": "node --test",
+    "build:vrc": "vite build --base=/dvp/"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans": "^5.3.0",

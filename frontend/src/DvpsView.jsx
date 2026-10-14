@@ -1,3 +1,4 @@
+import { withBase } from "./base.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchProgramDvps, setVrCapability, updateProgramDvp } from "./api.js";
 import ObservationImages from "./ObservationImages.jsx";
@@ -300,7 +301,7 @@ function EditPanel({ dvp, programCode, canEdit, user, initialTab, onLopChanged, 
                 <div className="drawer-thumbs">
                   {dvp.referenceImages.map((src, i) => (
                     <button key={src} type="button" className="thumb thumb-lg" onClick={() => onOpenImage(i, "reference")} aria-label={`Open image ${i + 1}`}>
-                      <img src={src} alt="" loading="lazy" />
+                      <img src={withBase(src)} alt="" loading="lazy" />
                     </button>
                   ))}
                 </div>

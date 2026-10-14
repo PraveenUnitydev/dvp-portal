@@ -47,6 +47,7 @@ app.use("/api", require("./routes/observations"));
 app.use("/api/reports", require("./routes/reports"));
 app.use("/api", require("./routes/vrReports"));
 app.use("/api", require("./routes/settings"));
+app.use("/api", require("./routes/users"));
 app.use("/api", (req, res) => res.status(404).json({ message: "Not found." }));
 
 // DVP reference images (from the master sheet). Names change whenever the
@@ -67,4 +68,6 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err.message));
 
-app.listen(PORT, "0.0.0.0", () => console.log(`DVP Portal running on http://0.0.0.0:${PORT}`));
+// Behind Nginx in production set HOST=127.0.0.1, so the portal is only reachable through Nginx (HTTPS)
+const HOST = process.env.HOST || "0.0.0.0";
+app.listen(PORT, HOST, () => console.log(`DVP Portal running on http://${HOST}:${PORT}`));

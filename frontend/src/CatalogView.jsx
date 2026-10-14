@@ -1,3 +1,4 @@
+import { withBase } from "./base.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { deleteDvp, fetchCatalogDvps } from "./api.js";
 import { Clamp, ImageViewer, Thumbnails, useZones } from "./shared.jsx";
@@ -178,7 +179,7 @@ function CatalogDetail({ dvp, onClose, onOpenImage, imageOpen, onEdit, onDelete,
                 <div className="drawer-thumbs">
                   {dvp.referenceImages.map((src, i) => (
                     <button key={src} type="button" className="thumb thumb-lg" onClick={() => onOpenImage(i)} aria-label={`Open image ${i + 1}`}>
-                      <img src={src} alt="" loading="lazy" />
+                      <img src={withBase(src)} alt="" loading="lazy" />
                     </button>
                   ))}
                 </div>

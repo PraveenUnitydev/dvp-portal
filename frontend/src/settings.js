@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 // them to show the right buttons and limits. These defaults match the server's and are used until the real values
 // have loaded (or if they can't be loaded).
 export const DEFAULT_SETTINGS = {
+  ssoNewUsersGetAccess: false,
   usersCanEditDvps: true,
   usersCanRaiseLop: true,
   usersCanAddObservations: true,

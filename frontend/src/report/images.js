@@ -1,4 +1,5 @@
 import { getToken } from "../api.js";
+import { withBase } from "../base.js";
 
 // Pictures for the PowerPoint report, made ready in the browser. PowerPoint can't show WebP (the reference images
 // are WebP), so every picture is redrawn as a JPEG, and large ones are scaled down to keep the file small.
@@ -7,7 +8,7 @@ const MAX_SIDE = 1600;
 
 export async function loadReportImage(url) {
   const headers = url.startsWith("/api/") ? { Authorization: `Bearer ${getToken()}` } : {};
-  const res = await fetch(url, { headers });
+  const res = await fetch(withBase(url), { headers });
   if (!res.ok) return null;
   const blob = await res.blob();
   const bitmap = await createImageBitmap(blob);

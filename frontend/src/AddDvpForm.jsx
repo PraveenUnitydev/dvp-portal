@@ -1,3 +1,4 @@
+import { withBase } from "./base.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createDvp, updateDvp } from "./api.js";
 import { sniffImageFile } from "./imageType.js";
@@ -299,7 +300,7 @@ export default function AddDvpForm({ dvps, programs, dvp, onClose, onCreated, on
                   const gone = removed.includes(img.name);
                   return (
                     <li key={img.name} className={gone ? "removed" : ""}>
-                      <img src={img.url} alt="" />
+                      <img src={withBase(img.url)} alt="" />
                       <span>{img.name}{gone && <small> · will be removed when you save</small>}</span>
                       <button type="button" className="link-btn" onClick={() => setRemoved(gone ? removed.filter((n) => n !== img.name) : [...removed, img.name])}>{gone ? "Keep" : "Remove"}</button>
                     </li>
