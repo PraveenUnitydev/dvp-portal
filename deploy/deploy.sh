@@ -6,6 +6,18 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# The settings file must exist first (see DEPLOY.md, step 2)
+if [ ! -f backend/.env ]; then
+  echo "!! backend/.env is missing. Create it first:  cp backend/.env.example backend/.env  and fill it in (see DEPLOY.md)."
+  exit 1
+fi
+for key in JWT_SECRET SSO_APP_SECRET; do
+  if ! grep -qE "^${key}=.{32,}" backend/.env; then
+    echo "!! ${key} in backend/.env is empty or shorter than 32 characters (see DEPLOY.md)."
+    exit 1
+  fi
+done
+
 BRANCH="${1:-$(git rev-parse --abbrev-ref HEAD)}"
 echo "== Updating to origin/$BRANCH"
 git fetch origin
@@ -29,7 +41,7 @@ echo "== Restart"
 pm2 startOrReload ecosystem.config.cjs --update-env
 pm2 save
 
-PORT="$(grep -E '^PORT=' backend/.env | cut -d= -f2 || true)"
+PORT="$( (grep -E '^PORT=' backend/.env || true) | cut -d= -f2)"
 for i in 1 2 3 4 5 6 7 8 9 10; do
   sleep 1
   if out="$(curl -fsS "http://127.0.0.1:${PORT:-7100}/api/health" 2>/dev/null)"; then
